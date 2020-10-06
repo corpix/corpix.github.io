@@ -1,0 +1,287 @@
+<!--
+              -os//`               -os//`               -os//`               -os//`               -os//`               -os//`
+            /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-
+         `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.
+       -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+
+     :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`
+   :y/     oy           :y/     oy           :y/     oy           :y/     oy           :y/     oy           :y/     oy
+ `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:
+ h-  -os:             h-  -os:             h-  -os:             h-  -os:             h-  -os:             h-  -os:
+-y.os/`              -y.os/`              -y.os/`              -y.os/`              -y.os/`              -y.os/`
+`s/`                 `s/`                 `s/`                 `s/`                 `s/`                 `s/`
+
+                good place for libertarian propaganda, huh? :)
+                «IT WAS SO COLD THIS MORNING. I SAW A SOCIALIST WITH HIS HANDS IN HIS OWN POCKETS»
+
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>run PostgreSQL by hands</title>
+
+    <meta name="description"           content="Раз в год (или около того) мне нужно запустить PostgreSQL с целью поразрабатывать что-нибудь. За то время что я его не использую знания выветриваются, так что на будущее я делаю эту заметку, в основном для себя.  Запускать PostgreSQL можно разными способа...">
+    <meta name="author"                content="Dmitry Moskowski">
+    <meta name="keywords"              content="ru, postgresql, nixos">
+    <meta name="viewport"              content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <link rel="shortcut icon" href="/img/favicon.png">
+    <link rel="stylesheet"    type="text/css" href="/css/normalize.css">
+    <link rel="stylesheet"    type="text/css" href="/css/theme.css">
+
+    <link rel="alternate" type="application/atom+xml" href="/feeds/all.atom.xml" title="Atom Feed">
+    <link rel="alternate" type="application/rss+xml"  href="/feeds/all.rss.xml"  title="RSS Feed">
+
+    <link rel="canonical" href="https://corpix.github.io/2019/02/run-postgresql-by-hands.html">
+
+    <link rel="next" href="/2019/02/reproducible-docker-containers.html">
+    <link rel="prev" href="/2019/03/choosing-the-best-adhesive-for-go-code-1.html">
+
+    <script>
+      // corpix: "никакого джаваскрипта на страницах нет и не будет"
+      // это последний, бросаю, с завтрашнего дня больше никакого джаваскрипта
+      // честно
+      document.documentElement.setAttribute('class', (function (d) {
+          var month = '' + (d.getMonth() + 1),
+              day   = '' + d.getDate(),
+              year  = d.getFullYear();
+          if (month.length < 2) month = '0' + month;
+          if (day.length < 2)   day   = '0' + day;
+          return 'yyyyddmm'+year+month+day+' ddmm'+month+day;
+      })(new Date()));
+    </script>
+  </head>
+  <body>
+    <div class="root">
+      <div class="container">
+        <div class="header">
+          <div class="logo">
+            <a href="/">
+              <img src="/img/logo.svg" title="OH MY GOD HE GOTS A KNIFE"/>
+            </a>
+          </div>
+          <nav class="navigation">
+            <a href="/">Home</a>
+            <a href="/projects.html">Projects</a>
+            <a href="/study.html">Study</a>
+            <a href="/about.html">About</a>
+          </nav>
+        </div>
+        <div class="content">
+          <!-- the one good licence for opensource is unlicense -->
+          <article>
+            <article>
+  <header>
+    <h1>run PostgreSQL by hands</h1>
+  </header>
+
+<p>Раз в год (или около того) мне нужно запустить PostgreSQL с целью поразрабатывать что-нибудь. За то время что я его не использую знания выветриваются, так что на будущее я делаю эту заметку, в основном для себя.</p>
+
+<p>Запускать PostgreSQL можно разными способами, вот два самых распространенных:</p>
+
+<ul>
+ <li>использовать docker</li>
+ <li>поставить пакет</li></ul>
+
+<p>Оба способа немного магические. Контейнеры стараются быть удобными и покрывать как можно больше функциональности, что выливается в адские entrypoint&rsquo;ы на bash с обратным удобству эффектом. Пакеты в распространенных дистрибутивах тоже содержат не мало магии, ведь они обычно (как минимум) инициализируют директорию с данными СУБД и запускают её сервис.</p>
+
+<p>В nixos тоже есть пакет для PostgreSQL, но он не управляет ни запуском, ни процессом инициализации. Так что полезно помнить как работать руками.</p>
+<!-- more-->
+
+<blockquote>
+ <p>Если вы уже собрались ругать nixos за это то вам стоит знать что эти &ldquo;сайдэффекты&rdquo; <a href="https://nixos.org/nixos/manual/#module-services-postgres-configuring">вынесены в отдельную сущность</a>, которая называется &ldquo;services&rdquo;.</p></blockquote>
+
+<p>В моём случае в корне каждого проекта есть файл <code>shell.nix</code> с примерно таким содержимым:</p>
+
+<div class="brush: nix">
+ <div class="source">
+  <pre><span></span><span class="k">with</span> <span class="nb">import</span> <span class="l">&lt;nixpkgs&gt;</span> <span class="p">{};</span>
+stdenv<span class="o">.</span>mkDerivation <span class="p">{</span>
+  <span class="ss">name =</span> <span class="s2">"shell"</span><span class="p">;</span>
+  <span class="ss">buildInputs =</span> <span class="p">[</span>
+    go
+    postgresql
+  <span class="p">];</span>
+<span class="p">}</span>
+</pre></div>
+
+</div>
+
+<p>Когда мне нужно разрабатывать этот проект я делаю <code>cd</code> в директорию с кодом и запускаю <code>nix-shell</code>, после чего указанные <code>buildInputs</code> становятся доступны внутри запустившегося <code>bash</code>.</p>
+
+<p>Т.к. я мало чего помнил о том с какими флагами нужно запускать PostgreSQL чтобы добиться желаемого и каков должен быть порядок действий то я подумал что было бы неплохо составить представление о том насколько дружелюбен PostgreSQL к пользователю в 2019 году. Начнём с самого начала, у нас есть установленные бинарники PostgreSQL и надо его запустить.</p>
+
+<p>Пробуем просто:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$</span> postgres
+<span class="go">postgres does not know where to find the server configuration file.</span>
+<span class="go">You must specify the --config-file or -D invocation option or set the PGDATA environment variable.</span>
+</pre></div>
+
+</div>
+
+<p>Не получилось, хотя можно было создать директорию для данных внутри текущей автоматически. Хорошо, сделаем это сами:</p>
+
+<blockquote>
+ <p>Скажу сразу: это ошибочный путь, смотрите далее.</p></blockquote>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$</span> mkdir data
+<span class="gp">$</span> postgres -D data
+<span class="go">postgres: could not access the server configuration file ".../data/postgresql.conf": No such file or directory</span>
+</pre></div>
+
+</div>
+
+<p>Подозрительно, PostgreSQL хочет чтобы ему положили конфиг. Проверяем <code>--help</code>, не находим какого-либо флага про генерацию дефолтного конфига и ищем его гуглом, находя sample на github, его и подкладываем:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$</span> curl -Ls https://raw.githubusercontent.com/postgres/postgres/master/src/backend/utils/misc/postgresql.conf.sample &gt; data/postgresql.conf
+<span class="gp">$</span> postgres -D data
+<span class="go">LOG:  skipping missing configuration file ".../data/postgresql.auto.conf"</span>
+<span class="go">FATAL:  data directory ".../data" has group or world access</span>
+<span class="go">DETAIL:  Permissions should be u=rwx (0700).</span>
+</pre></div>
+
+</div>
+
+<p>Конфигурацию у нас приняли, но теперь сервису не нравятся права на директорию с данными. У меня были установлены <code>drwxr-xr-x</code>, т.е. <code>755</code>.</p>
+
+<p>Здесь хочется сказать пару слов про сервисы, которые считают админа/пользователя идиотом. Я понимаю чем это вызвано, раньше сервисы настраивали руками и было просто упустить что-нибудь и получить нежелательный сайдэффект в виде чтения данных людьми, которым их читать не нужно.</p>
+
+<p>Сегодня ситуация иная. Правами чаще всего управляют через пакетный менеджер, руками редко нужно что-то делать и эти проверки только мешают. На мой взгляд сегодня их все можно классифицировать как не фатальные и просто показывать warning.</p>
+
+<blockquote>
+ <p>А те кто эти ворнинги будет игнорировать (и таки прострелит себе ноги) сам виноват.</p></blockquote>
+
+<p>В данном случае сообщение о не правильных правах меня насторожило и я вспомнил что раньше директорию для хранения данных PostgreSQL нужно было как-то инициализировать. Сходил в гугл и вернулся с:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$</span> pg_ctl initdb --pgdata<span class="o">=</span>data
+<span class="go">The files belonging to this database system will be owned by user "user".</span>
+<span class="go">This user must also own the server process.</span>
+
+<span class="go">The database cluster will be initialized with locale "en_US.UTF-8".</span>
+<span class="go">The default database encoding has accordingly been set to "UTF8".</span>
+<span class="go">The default text search configuration will be set to "english".</span>
+
+<span class="go">Data page checksums are disabled.</span>
+
+<span class="go">creating directory data ... ok</span>
+<span class="go">creating subdirectories ... ok</span>
+<span class="go">selecting default max_connections ... 100</span>
+<span class="go">selecting default shared_buffers ... 128MB</span>
+<span class="go">selecting dynamic shared memory implementation ... posix</span>
+<span class="go">creating configuration files ... ok</span>
+<span class="go">running bootstrap script ... ok</span>
+<span class="go">performing post-bootstrap initialization ... ok</span>
+<span class="go">syncing data to disk ... ok</span>
+
+<span class="go">WARNING: enabling "trust" authentication for local connections</span>
+<span class="go">You can change this by editing pg_hba.conf or using the option -A, or</span>
+<span class="go">--auth-local and --auth-host, the next time you run initdb.</span>
+
+<span class="go">Success. You can now start the database server using:</span>
+
+<span class="go">    pg_ctl -D data -l logfile start</span>
+</pre></div>
+
+</div>
+
+<p>Нам предлагают запустить СУБД через <code>pg_ctl</code>, но в этом случае процесс уйдёт в бэкграунд, а это совсем не то чего я хочу для разработки.</p>
+
+<blockquote>
+ <p>Много открытых терминалов не является для меня проблемой, но это может быть удобно если этот же терминал хочется использовать ещё для чего-нибудь.</p></blockquote>
+
+<p>Так что:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$</span> postgres -D data
+<span class="go">LOG:  database system was shut down at 2019-02-25 17:30:27 UTC</span>
+<span class="go">LOG:  MultiXact member wraparound protections are now enabled</span>
+<span class="go">LOG:  autovacuum launcher started</span>
+<span class="go">LOG:  database system is ready to accept connections</span>
+</pre></div>
+
+</div>
+
+<p>Сервер у нас есть и он слушает на <code>127.0.0.1:5432/tcp</code>. Но это ещё не всё, если попробовать запустить клиент:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$</span> psql
+<span class="go">psql: could not connect to server: No such file or directory</span>
+<span class="go">        Is the server running locally and accepting</span>
+<span class="go">        connections on Unix domain socket "/tmp/.s.PGSQL.5432"?</span>
+</pre></div>
+
+</div>
+
+<p>Он почему-то хочет соединяться с базой только по unix socket, что конечно хорошо, ещё бы логика по которой клиент ломится по unix socket была консистентна с логикой сервера&hellip;</p>
+
+<p>Так что нужно ещё явно указать хост:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$</span> psql -h <span class="m">127</span>.0.0.1
+<span class="go">psql: FATAL:  database "user" does not exist</span>
+</pre></div>
+
+</div>
+
+<p>Что тут у нас? Базы данных для вашего пользователя нет?</p>
+
+<p>В дистрибутивах её обычно создаёт специальный postinstall скрипт. Так что придётся проделать ещё вот что:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$</span> createdb -h <span class="m">127</span>.0.0.1 delirium
+</pre></div>
+
+</div>
+
+<p>Теперь можно соединяться:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$</span> psql -h <span class="m">127</span>.0.0.1 -d delirium
+<span class="go">psql (9.6.11)</span>
+<span class="go">Type "help" for help.</span>
+
+<span class="go">delirium=# help</span>
+<span class="go">You are using psql, the command-line interface to PostgreSQL.</span>
+<span class="go">Type:  \copyright for distribution terms</span>
+<span class="go">       \h for help with SQL commands</span>
+<span class="go">       \? for help with psql commands</span>
+<span class="go">       \g or terminate with semicolon to execute query</span>
+<span class="go">       \q to quit</span>
+<span class="go">delirium=# \q</span>
+</pre></div>
+
+</div>
+
+<h3 id="c3c18c71"><a href="#c3c18c71" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>вывод</h3>
+
+<p>PostgreSQL не блещет удобством для пользователя, но указанные мною шероховатости могут быть сглажены со временем. Хотя стоит отдать должное, он далеко не худший в этом плане(вы пробовали запустить nginx от непривилегированного пользователя?).</p>
+  <footer>
+    <p>
+<time datetime="2019-02-25" pubdate="true">2019-02-25</time> <span class="tags"><a href="/tags/ru.html">ru</a>, <a href="/tags/postgresql.html">postgresql</a>, <a href="/tags/nixos.html">nixos</a></span></p>
+  </footer>
+</article>
+          </article>
+        </div>
+      </div>
+    </div>
+    <!-- remember: when you stare into the abyss the abyss stares back at you -->
+  </body>
+</html>

@@ -1,0 +1,7 @@
+https://corpix.github.io/2019/02/reproducible-docker-containers.html
+https://corpix.github.io/2019/02/run-postgresql-by-hands.html
+https://corpix.github.io/2019/03/choosing-the-best-adhesive-for-go-code-1.html
+https://corpix.github.io/2019/02/emacs-go-mode-lsp-repl.html
+https://corpix.github.io/study.html
+https://corpix.github.io/projects.html
+https://corpix.github.io/about.html
