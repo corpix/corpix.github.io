@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+ <title type="text">corpix/blog: Posts tagged 'iot'</title>
+ <link rel="self" href="https://corpix.dev/feeds/iot.atom.xml" />
+ <link href="https://corpix.dev/tags/iot.html" />
+ <id>urn:https-corpix-dev:-tags-iot-html</id>
+ <updated>2024-02-06T09:00:00Z</updated>
+ <entry>
+  <title type="text">Flashing Tuya WT5 dimmer with openbeken</title>
+  <link rel="alternate" href="https://corpix.dev/2024/02/flashing-tuya-wt5-dimmer-with-openbeken.html?utm_source=iot&amp;utm_medium=Atom" />
+  <id>urn:https-corpix-dev:-2024-02-flashing-tuya-wt5-dimmer-with-openbeken-html</id>
+  <published>2024-02-06T09:00:00Z</published>
+  <updated>2024-02-06T09:00:00Z</updated>
+  <author>
+   <name>Dmitry Moskowski</name></author>
+  <content type="html">&lt;a href="https://corpix.dev/2024/02/flashing-tuya-wt5-dimmer-with-openbeken.html?utm_source=iot&amp;amp;utm_medium=Atom"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</content></entry></feed>

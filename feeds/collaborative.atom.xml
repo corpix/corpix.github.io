@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+ <title type="text">corpix/blog: Posts tagged 'collaborative'</title>
+ <link rel="self" href="https://corpix.dev/feeds/collaborative.atom.xml" />
+ <link href="https://corpix.dev/tags/collaborative.html" />
+ <id>urn:https-corpix-dev:-tags-collaborative-html</id>
+ <updated>2022-02-20T21:00:00Z</updated>
+ <entry>
+  <title type="text">Collaborative editing with Emacs</title>
+  <link rel="alternate" href="https://corpix.dev/2022/02/collaborative-editing-with-emacs.html?utm_source=collaborative&amp;utm_medium=Atom" />
+  <id>urn:https-corpix-dev:-2022-02-collaborative-editing-with-emacs-html</id>
+  <published>2022-02-20T21:00:00Z</published>
+  <updated>2022-02-20T21:00:00Z</updated>
+  <author>
+   <name>Dmitry Moskowski</name></author>
+  <content type="html">
+&lt;p&gt;This note is about using Emacs for collaborative editing with help of package called &lt;a href="https://code.librehq.com/qhong/crdt.el"&gt;crdt.el&lt;/a&gt;.&lt;/p&gt;&lt;a href="https://corpix.dev/2022/02/collaborative-editing-with-emacs.html?utm_source=collaborative&amp;amp;utm_medium=Atom"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</content></entry></feed>

@@ -1,0 +1,300 @@
+<!--
+              -os//`               -os//`               -os//`               -os//`               -os//`               -os//`
+            /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-
+         `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.
+       -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+
+     :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`
+   :y/     oy           :y/     oy           :y/     oy           :y/     oy           :y/     oy           :y/     oy
+ `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:
+ h-  -os:             h-  -os:             h-  -os:             h-  -os:             h-  -os:             h-  -os:
+-y.os/`              -y.os/`              -y.os/`              -y.os/`              -y.os/`              -y.os/`
+`s/`                 `s/`                 `s/`                 `s/`                 `s/`                 `s/`
+
+                good place for libertarian propaganda, huh? :)
+                «IT WAS SO COLD THIS MORNING. I SAW A SOCIALIST WITH HIS HANDS IN HIS OWN POCKETS»
+
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>emacs + go-mode + lsp + REPL</title>
+
+    <meta name="description"           content="Некоторое время назад я начал переезжать с spacemacs обратно на самописную конфигурацию(мне так стабильнее и кастомайзить проще). Common LISP и scheme работают почти без настройки, а вот с golang пришлось поплясать.  Цель: настроить среду разработки, кото...">
+    <meta name="author"                content="Dmitry Moskowski">
+    <meta name="keywords"              content="ru, golang, emacs, language server, nix, bingo, vgo2nix">
+    <meta name="viewport"              content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <link rel="shortcut icon" href="/img/favicon.png">
+    <link rel="stylesheet"    type="text/css" href="/css/normalize.css">
+    <link rel="stylesheet"    type="text/css" href="/css/theme.css">
+
+    <link rel="alternate" type="application/atom+xml" href="/feeds/all.atom.xml" title="Atom Feed">
+    <link rel="alternate" type="application/rss+xml"  href="/feeds/all.rss.xml"  title="RSS Feed">
+
+    <link rel="canonical" href="https://corpix.dev/2019/02/emacs-go-mode-lsp-repl.html">
+
+
+    <link rel="prev" href="/2019/02/reproducible-docker-containers.html">
+
+    <script>
+      // corpix: "никакого джаваскрипта на страницах нет и не будет"
+      // это последний, бросаю, с завтрашнего дня больше никакого джаваскрипта
+      // честно
+      document.documentElement.setAttribute('class', (function (d) {
+          var month = '' + (d.getMonth() + 1),
+              day   = '' + d.getDate(),
+              year  = d.getFullYear();
+          if (month.length < 2) month = '0' + month;
+          if (day.length < 2)   day   = '0' + day;
+          return 'yyyyddmm'+year+month+day+' ddmm'+month+day;
+      })(new Date()));
+    </script>
+  </head>
+  <body>
+    <div class="root">
+      <div class="container">
+        <div class="header">
+          <div class="logo">
+            <a href="/">
+              <img src="/img/logo.svg" title="OH MY GOD HE GOTS A KNIFE"/>
+            </a>
+          </div>
+          <nav class="navigation">
+            <a href="/">Home</a>
+            <a href="/feeds/all.rss.xml">RSS</a>
+            <a href="/projects.html">Projects</a>
+            <a href="/study.html">Study</a>
+            <a href="/about.html">About</a>
+          </nav>
+        </div>
+        <div class="content">
+          <!-- the one good licence for opensource is unlicense -->
+          <article>
+            <article>
+  <header>
+    <h1>emacs + go-mode + lsp + REPL</h1>
+  </header>
+
+<p>Некоторое время назад я начал переезжать с spacemacs обратно на самописную конфигурацию(мне так стабильнее и кастомайзить проще). Common LISP и scheme работают почти без настройки, а вот с golang пришлось поплясать.</p>
+
+<p>Цель: настроить среду разработки, которая способна:</p>
+
+<ul>
+ <li>к автокомплиту</li>
+ <li>выводу документации</li>
+ <li>go to definition</li></ul>
+
+<p>Это минимум, необходимый мне для работы.</p>
+
+<p>Скажу сразу:</p>
+
+<ul>
+ <li>не всё заработало</li>
+ <li>некоторые вещи тормозят</li>
+ <li>некоторые работают странно</li></ul>
+
+<p>Но жить можно, плюс ко всему - понятно что улучшать.</p>
+<!-- more-->
+
+<h2 id="cbc774ea"><a href="#cbc774ea" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>Прошлое встречается с настоящим</h2>
+
+<p>Я использовал следующие пакеты:</p>
+
+<ul>
+ <li>go-mode</li>
+ <li>company-go</li>
+ <li>go-imports</li>
+ <li>&hellip;</li></ul>
+
+<p>Эти пакеты основные, дающие следующие жизненно важные фичи:</p>
+
+<ul>
+ <li>автокомплит по проекту с помощью <a href="https://github.com/nsf/gocode">gocode</a></li>
+ <li>go to definition с помощью <a href="https://github.com/rogpeppe/godef">godef</a></li>
+ <li>поиск и добавление импортов через <a href="https://github.com/yasushi-saito/go-imports">go-imports</a></li></ul>
+
+<p>Как многие знают, go 1.11 наконец-то <a href="https://github.com/golang/go/wiki/Modules">получил</a> что-то похожее на современный менеджер пакетов и теперь можно:</p>
+
+<ul>
+ <li>фиксировать версии зависимостей встроенными инструментами</li>
+ <li>не использовать переменную окружения <code>GOPATH</code> совсем</li></ul>
+
+<p>Но вместе с этим приятным новшеством стоит заметить, теперь в go есть следующие способы управления зависимостями:</p>
+
+<ol>
+ <li>классический <code>go get</code> с использованием <code>GOPATH</code></li>
+ <li>вендоринг, подразумевающий хранение всех зависимостей в директории <code>vendor</code> в корне проекта</li>
+ <li>модули, не требующие <code>GOPATH</code> вообще</li></ol>
+
+<p>Я решил сосредоточиться на поддержке способа #3, поскольку на сегодняшний день не считаю #1 и #2 удачными решениями(кстати, вендоринг <a href="https://github.com/golang/go/wiki/Modules#how-do-i-use-vendoring-with-modules-is-vendoring-going-away">никуда не уходит</a>).</p>
+
+<p>Что с поддержкой модулей у имеющихся инструментов:</p>
+
+<ul>
+ <li><code>gocode</code> не работает с модулями и мейнтейнер <a href="https://github.com/nsf/gocode/issues/532">не планирует их поддерживать</a></li>
+ <li><code>godef</code> с вендорингом так и не научился работать, модули не поддерживает, но <a href="https://github.com/rogpeppe/godef/issues/83">есть надежда</a></li>
+ <li><code>go-imports</code> напрямую не зависит от способа управления зависимостями, так что он универсален</li></ul>
+
+<p>Работать с форком <code>gocode</code> мне не очень хочется, равно как и ждать/запиливать поддержку модулей в <code>godef</code>. Выходит нужно найти замену для двух основных инструментов: <code>gocode</code> и <code>godef</code>.</p>
+
+<h2 id="2c9e56b6"><a href="#2c9e56b6" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>Адаптация</h2>
+
+<p>Я сразу решил попробовать то что нам принёс VS Code - <a href="https://microsoft.github.io/language-server-protocol/">Language Server Protocol</a> и его <a href="https://github.com/emacs-lsp/lsp-mode">поддержку в emacs</a>.</p>
+
+<p>На сегодняшний день есть как минимум 2 готовых реализации Language Server Protocol для golang:</p>
+
+<ul>
+ <li><a href="https://github.com/sourcegraph/go-langserver">go-langserver</a>, который пока <a href="https://github.com/sourcegraph/go-langserver/issues/293">не поддерживает модули</a></li>
+ <li><a href="https://github.com/saibing/bingo">bingo</a>, поддерживающий модули</li></ul>
+
+<p>К тому же команда go готовит <a href="https://godoc.org/golang.org/x/tools/cmd/golsp">собственную реализацию</a> и <a href="https://github.com/saibing/bingo/issues/13">призывает к сотрудничеству</a>.</p>
+
+<p>Так получилось что первым я попробовал <code>go-langserver</code>, поскольку с самого начала пошел не совсем верной дорогой, поставив <a href="https://github.com/emacs-lsp/lsp-go">lsp-go</a>. В репозитории отсутствовал deprecation notice, так что я даже успел его <a href="https://github.com/emacs-lsp/lsp-go/pull/18">отрефакторить</a>, прежде чем узнал что он &ldquo;всё&rdquo; и вся функциональность теперь поддерживается в <a href="https://github.com/emacs-lsp/lsp-mode">lsp-mode</a>.</p>
+
+<p>Но это дало мне возможность оценить легкость поддержки реализаций language server в emacs, вот пример elisp кода, который зарегистрирует language server и будет запускать его при открытии <code>.go</code> файлов:</p>
+
+<div class="brush: lisp">
+ <div class="source">
+  <pre><span></span><span class="p">(</span><span class="nb">require</span><span class="w"> </span><span class="ss">&#39;lsp-mode</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">lsp-register-client</span>
+<span class="w"> </span><span class="p">(</span><span class="nv">make-lsp-client</span>
+<span class="w">  </span><span class="ss">:new-connection</span><span class="w"> </span><span class="p">(</span><span class="nv">lsp-stdio-connection</span><span class="w"> </span><span class="s">"some-language-server-binary"</span><span class="p">)</span>
+<span class="w">  </span><span class="ss">:major-modes</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="nv">some-language-emacs-mode</span><span class="p">)</span>
+<span class="w">  </span><span class="ss">:server-id</span><span class="w"> </span><span class="ss">&#39;some-language-server</span><span class="p">))</span>
+</pre></div>
+
+</div>
+
+<p>Методом проб и ошибок я пришел к следующей конфигурации для emacs:</p>
+
+<blockquote>
+ <p>Она использует <a href="https://github.com/jwiegley/use-package">use-package</a> для более удобного управления зависимостями прямо из кода.</p></blockquote>
+
+<div class="brush: lisp">
+ <div class="source">
+  <pre><span></span><span class="p">(</span><span class="nb">defun</span><span class="w"> </span><span class="nv">config/packages/go</span><span class="w"> </span><span class="p">()</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">go-mode</span>
+<span class="w">    </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span>
+<span class="w">    </span><span class="ss">:config</span>
+<span class="w">    </span><span class="p">(</span><span class="nv">add-to-list</span><span class="w"> </span><span class="ss">&#39;auto-mode-alist</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="s">"\\.go\\&#39;"</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="nv">go-mode</span><span class="p">)))</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">go-tag</span><span class="w"> </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">go-add-tags</span><span class="w"> </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">go-playground</span><span class="w"> </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">go-rename</span><span class="w"> </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">go-stacktracer</span><span class="w"> </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">gore-mode</span><span class="w"> </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">gorepl-mode</span>
+<span class="w">    </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span>
+<span class="w">    </span><span class="ss">:config</span>
+<span class="w">    </span><span class="p">(</span><span class="nv">add-hook</span><span class="w"> </span><span class="ss">&#39;go-mode-hook</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">gorepl-mode</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span><span class="w"> </span><span class="nv">config/packages/lsp</span><span class="w"> </span><span class="p">()</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">lsp-mode</span><span class="w"> </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">lsp-ui</span>
+<span class="w">    </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span>
+<span class="w">    </span><span class="ss">:config</span>
+<span class="w">    </span><span class="p">(</span><span class="nv">add-hook</span><span class="w"> </span><span class="ss">&#39;lsp-mode-hook</span><span class="w"> </span><span class="ss">&#39;lsp-ui-mode</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">setq</span>
+<span class="w">     </span><span class="nv">lsp-ui-doc-header</span><span class="w"> </span><span class="no">t</span>
+<span class="w">     </span><span class="nv">lsp-ui-doc-include-signature</span><span class="w"> </span><span class="no">t</span>
+<span class="w">     </span><span class="nv">lsp-ui-doc-use-childframe</span><span class="w"> </span><span class="no">t</span>
+<span class="w">     </span><span class="nv">lsp-ui-doc-position</span><span class="w"> </span><span class="ss">&#39;bottom</span>
+<span class="w">     </span><span class="nv">lsp-ui-sideline-enable</span><span class="w"> </span><span class="no">nil</span>
+<span class="w">     </span><span class="nv">lsp-enable-eldoc</span><span class="w"> </span><span class="no">nil</span><span class="p">))</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">company-lsp</span>
+<span class="w">    </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span>
+<span class="w">    </span><span class="ss">:config</span>
+<span class="w">    </span><span class="p">(</span><span class="nv">add-to-list</span><span class="w"> </span><span class="ss">&#39;company-backends</span><span class="w"> </span><span class="ss">&#39;company-lsp</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nv">config/packages/lsp</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">config/packages/go</span><span class="p">)</span>
+</pre></div>
+
+</div>
+
+<p>Данная конфигурация декларирует и вызывает 2 функции, настраивающие поддержку LSP и тулинг вокруг go:</p>
+
+<ul>
+ <li><code>config/packages/lsp</code></li>
+ <li><code>config/packages/go</code></li></ul>
+
+<p>Необходимые внешние инструменты:</p>
+
+<ul>
+ <li><code>gomodifytags</code> из пакета <a href="https://github.com/fatih/gomodifytags">github.com/fatih/gomodifytags</a> для работы <code>go-tag</code> и <code>go-add-tags</code></li>
+ <li><code>gorename</code> из пакета <a href="https://golang.org/x/tools">golang.org/x/tools</a> для работы <code>go-rename</code></li>
+ <li><code>gore</code> из пакета <a href="https://github.com/motemen/gore">github.com/motemen/gore</a> для работы <code>gore-mode</code> и <code>gorepl-mode</code></li></ul>
+
+<p>Что даёт следующие возможности:</p>
+
+<ul>
+ <li>запускать language server когда это потребуется(не автоматически, дальше напишу почему) через вызов функции <code>lsp</code></li>
+ <li>иметь автокомплит по проекту(с некоторыми оговорками)</li>
+ <li>добавлять импорты по <code>C-a C-c</code> или функцией <code>go-import-add</code></li>
+ <li>добавлять/удалять теги у структур с помощью функций <code>go-tag-add</code>, <code>go-tag-remove</code></li>
+ <li>отправлять буфер или выделенный регион в <a href="https://play.golang.org">play.golang.org</a> через функции с префиксом <code>go-play</code></li>
+ <li>управлять локальным плейграундом через функции с префиксом <code>go-playground</code></li>
+ <li>производить простейшие рефакторинги переименованием с помощью функции <code>go-rename</code></li>
+ <li>преобразовывать стектрейсы в список ссылок на строки(к которым можно легко перейти из редактора)</li>
+ <li>использовать REPL через функции с префиксом <code>gorepl</code> или используя указанные <a href="https://github.com/manute/gorepl-mode/tree/bbd27f6a0a77f484e2a3f082d70dc69da63ae52a#gorepl-mode-1">хоткеи</a></li>
+ <li>смотреть документацию по символам под курсором, которая появляется в верхнем правом углу текущего буфера</li>
+ <li>переходить к месту декларации символа под курсором через <code>lsp-find-definition</code>(за префиксом <code>lsp-find</code> есть ещё более специфичные функции)</li></ul>
+
+<p>Теперь про оговорки и о том что не работает:</p>
+
+<ul>
+ <li>запускать language server стоит руками, потому что его запуск дорог и он способен значительно уменьшить время работы ноутбука от батарейки</li>
+ <li>включать language server приходится отдельно для каждого буфера</li>
+ <li>подсказки <code>lsp-ui</code> с документацией не всегда прибиты к верхней части буфера, не смотря на настройку</li>
+ <li>автокомплит иногда просто не работает без видимых причин</li>
+ <li>порой автокомплит показывает слижком много мусора, не имеющего отношения к инспектируемому символу</li></ul>
+
+<p>В остальном довольно юзабельно.</p>
+
+<h2 id="c3c18c71"><a href="#c3c18c71" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>Вывод</h2>
+
+<p>Поддержка LSP в emacs и go всё ещё не без багов, но её уже можно использовать, более того, отсутствие поддержки модулей(vgo) в gocode делает language servers практически безальтернативным вариантом(если исключить возможность перехода на предлагаемый автором форк).</p>
+
+<p>Остаётся следить за обновлениями официального репозитория с тулзами для go и ждать/помогать приблизить улучшение поддержки LSP в экосистеме go &amp; emacs.</p>
+
+<h2 id="fc2a07ae"><a href="#fc2a07ae" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>Бонус</h2>
+
+<p>Для тех кто дочитал до конца выкладываю <a href="https://gist.github.com/corpix/6ae6860e202004632c782012f6da203d">nix derivation</a> для LSP сервера <code>bingo</code> и расскажу небольшую историю про его &ldquo;опакечивание&rdquo;.</p>
+
+<p>Когда я понял что мне нужен language server <code>bingo</code> и не нашел его в <a href="https://github.com/nixos/nixpkgs">nixpgks</a> мне пришлось заняться упаковкой, чтобы я мог использовать его в конфигурации своей рабочей станции. Чтобы запаковывать golang пакеты, поддерживающие vgo одним чуваком из сообщества был написан инструмент <a href="https://github.com/adisbladis/vgo2nix">vgo2nix</a>, которым я и попробовал воспользоваться, но тут началось довольно весёлое приключение:</p>
+
+<p>Где-то в цепочке зависимостей <code>bingo</code> есть пакет <code>git.apache.org/thrift.git</code>, когда этот URL обрабатывается пакетом <code>golang.org/x/tools/go/vcs</code> то из него пропадает <code>.git</code>, а <code>git.apache.org</code> настроен таким образом чтобы делать редирект <code>git.apache.org/thrift.git -&gt; github.com/apache/thrift</code> и пропажа <code>.git</code> из URL приводит к тому что <code>git.apache.org</code> начинает отдавать 404.</p>
+
+<p>Гошный <code>vcs.RepoRootForImportPath</code> считает что если ему отдали 404 по HTTP то нужно попробовать по SSH. Спорный фолбэк конечно(скорее всего сделан для приватных репозиториев). Пока я пытался отдебажить, какие именно аргументы приходят в <code>vcs.RepoRootForImportPath</code> меня успешно забанили на фаерволе <code>git.apache.org</code>, похоже что у них установлен fail2ban :)</p>
+
+<p>Таким образом я решил добавить поддержку рерайтов в <code>vgo2nix</code> и переписал весь инструмент(<a href="https://gist.github.com/corpix/92ede38c35b161cad5b60fc12f73d30b">патч</a> для <code>HEAD b298f4f</code>). После я смог сгенерировать <code>deps.nix</code> с правильной декларацией зависимостей, <a href="https://gist.github.com/corpix/6ae6860e202004632c782012f6da203d#file-deps-nix-L60-L66">ссылающейся напрямую</a> на github вместо <code>git.apache.org</code>.</p>
+
+<p>Патч автору пока не отправлял, пришлось поправить несколько регулярок для парсинга версий в выводе <code>go list -m all</code> и я хочу попозже разобраться, можно ли без них обойтись и как vgo вообще генерирует версии для go пакетов.</p>
+
+<p>Такие дела.</p>
+  <footer>
+    <p>
+<time datetime="2019-02-02" pubdate="true">2019-02-02</time> <span class="tags"><a href="/tags/ru.html">ru</a>, <a href="/tags/golang.html">golang</a>, <a href="/tags/emacs.html">emacs</a>, <a href="/tags/language-server.html">language server</a>, <a href="/tags/nix.html">nix</a>, <a href="/tags/bingo.html">bingo</a>, <a href="/tags/vgo2nix.html">vgo2nix</a></span></p>
+  </footer>
+</article>
+          </article>
+        </div>
+      </div>
+    </div>
+    <!-- remember: when you stare into the abyss the abyss stares back at you -->
+  </body>
+</html>

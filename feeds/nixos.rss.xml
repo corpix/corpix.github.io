@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<rss version="2.0">
+ <channel>
+  <title>corpix/blog: Posts tagged 'nixos'</title>
+  <description>corpix/blog: Posts tagged 'nixos'</description>
+  <link>https://corpix.dev/tags/nixos.html</link>
+  <lastBuildDate>Tue, 06 Feb 2024 09:00:00 UT</lastBuildDate>
+  <pubDate>Tue, 06 Feb 2024 09:00:00 UT</pubDate>
+  <ttl>1800</ttl>
+  <item>
+   <title>Flashing Tuya WT5 dimmer with openbeken</title>
+   <link>https://corpix.dev/2024/02/flashing-tuya-wt5-dimmer-with-openbeken.html?utm_source=nixos&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2024-02-flashing-tuya-wt5-dimmer-with-openbeken-html</guid>
+   <pubDate>Tue, 06 Feb 2024 09:00:00 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>&lt;a href="https://corpix.dev/2024/02/flashing-tuya-wt5-dimmer-with-openbeken.html?utm_source=nixos&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item>
+  <item>
+   <title>Terraforming NixOS hosts</title>
+   <link>https://corpix.dev/2022/08/terraforming-nixos-hosts.html?utm_source=nixos&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2022-08-terraforming-nixos-hosts-html</guid>
+   <pubDate>Sun, 28 Aug 2022 21:00:00 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;I&amp;rsquo;ve made a provider to deploy Nixos hosts with Terraform.&lt;/p&gt;
+
+&lt;p&gt;Here is a list of features it support at this moment:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;configuration deployment&lt;/li&gt;
+ &lt;li&gt;secrets deployment&lt;/li&gt;
+ &lt;li&gt;SSH bastions&lt;/li&gt;
+ &lt;li&gt;provider, Nix, SSH settings overriding on per-host basis&lt;/li&gt;
+ &lt;li&gt;host addresses prioritization&lt;/li&gt;&lt;/ul&gt;&lt;a href="https://corpix.dev/2022/08/terraforming-nixos-hosts.html?utm_source=nixos&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item>
+  <item>
+   <title>run PostgreSQL by hands</title>
+   <link>https://corpix.dev/2019/02/run-postgresql-by-hands.html?utm_source=nixos&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2019-02-run-postgresql-by-hands-html</guid>
+   <pubDate>Mon, 25 Feb 2019 18:47:15 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;Раз в год (или около того) мне нужно запустить PostgreSQL с целью поразрабатывать что-нибудь. За то время что я его не использую знания выветриваются, так что на будущее я делаю эту заметку, в основном для себя.&lt;/p&gt;
+
+&lt;p&gt;Запускать PostgreSQL можно разными способами, вот два самых распространенных:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;использовать docker&lt;/li&gt;
+ &lt;li&gt;поставить пакет&lt;/li&gt;&lt;/ul&gt;
+
+&lt;p&gt;Оба способа немного магические. Контейнеры стараются быть удобными и покрывать как можно больше функциональности, что выливается в адские entrypoint&amp;rsquo;ы на bash с обратным удобству эффектом. Пакеты в распространенных дистрибутивах тоже содержат не мало магии, ведь они обычно (как минимум) инициализируют директорию с данными СУБД и запускают её сервис.&lt;/p&gt;
+
+&lt;p&gt;В nixos тоже есть пакет для PostgreSQL, но он не управляет ни запуском, ни процессом инициализации. Так что полезно помнить как работать руками.&lt;/p&gt;&lt;a href="https://corpix.dev/2019/02/run-postgresql-by-hands.html?utm_source=nixos&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item></channel></rss>

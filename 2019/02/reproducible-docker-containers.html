@@ -1,0 +1,586 @@
+<!--
+              -os//`               -os//`               -os//`               -os//`               -os//`               -os//`
+            /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-
+         `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.
+       -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+
+     :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`
+   :y/     oy           :y/     oy           :y/     oy           :y/     oy           :y/     oy           :y/     oy
+ `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:
+ h-  -os:             h-  -os:             h-  -os:             h-  -os:             h-  -os:             h-  -os:
+-y.os/`              -y.os/`              -y.os/`              -y.os/`              -y.os/`              -y.os/`
+`s/`                 `s/`                 `s/`                 `s/`                 `s/`                 `s/`
+
+                good place for libertarian propaganda, huh? :)
+                «IT WAS SO COLD THIS MORNING. I SAW A SOCIALIST WITH HIS HANDS IN HIS OWN POCKETS»
+
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>reproducible docker containers</title>
+
+    <meta name="description"           content="Многие сегодня используют docker для доставки своих решений в продакшен. Обычно образы собираются с помощью т.н. `Dockerfile`, который может иметь следующий вид:      FROM golang:latest as builder WORKDIR /go/src COPY . . RUN go build -o app FROM alpine:l...">
+    <meta name="author"                content="Dmitry Moskowski">
+    <meta name="keywords"              content="ru, docker, nix">
+    <meta name="viewport"              content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <link rel="shortcut icon" href="/img/favicon.png">
+    <link rel="stylesheet"    type="text/css" href="/css/normalize.css">
+    <link rel="stylesheet"    type="text/css" href="/css/theme.css">
+
+    <link rel="alternate" type="application/atom+xml" href="/feeds/all.atom.xml" title="Atom Feed">
+    <link rel="alternate" type="application/rss+xml"  href="/feeds/all.rss.xml"  title="RSS Feed">
+
+    <link rel="canonical" href="https://corpix.dev/2019/02/reproducible-docker-containers.html">
+
+    <link rel="next" href="/2019/02/emacs-go-mode-lsp-repl.html">
+    <link rel="prev" href="/2019/02/run-postgresql-by-hands.html">
+
+    <script>
+      // corpix: "никакого джаваскрипта на страницах нет и не будет"
+      // это последний, бросаю, с завтрашнего дня больше никакого джаваскрипта
+      // честно
+      document.documentElement.setAttribute('class', (function (d) {
+          var month = '' + (d.getMonth() + 1),
+              day   = '' + d.getDate(),
+              year  = d.getFullYear();
+          if (month.length < 2) month = '0' + month;
+          if (day.length < 2)   day   = '0' + day;
+          return 'yyyyddmm'+year+month+day+' ddmm'+month+day;
+      })(new Date()));
+    </script>
+  </head>
+  <body>
+    <div class="root">
+      <div class="container">
+        <div class="header">
+          <div class="logo">
+            <a href="/">
+              <img src="/img/logo.svg" title="OH MY GOD HE GOTS A KNIFE"/>
+            </a>
+          </div>
+          <nav class="navigation">
+            <a href="/">Home</a>
+            <a href="/feeds/all.rss.xml">RSS</a>
+            <a href="/projects.html">Projects</a>
+            <a href="/study.html">Study</a>
+            <a href="/about.html">About</a>
+          </nav>
+        </div>
+        <div class="content">
+          <!-- the one good licence for opensource is unlicense -->
+          <article>
+            <article>
+  <header>
+    <h1>reproducible docker containers</h1>
+  </header>
+
+<p>Многие сегодня используют docker для доставки своих решений в продакшен. Обычно образы собираются с помощью т.н. <code>Dockerfile</code>, который может иметь следующий вид:</p>
+
+<div class="brush: dockerfile">
+ <div class="source">
+  <pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">golang:latest</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="s">builder</span>
+<span class="k">WORKDIR</span><span class="w"> </span><span class="s">/go/src</span>
+<span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>.
+<span class="k">RUN</span><span class="w"> </span>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>app
+<span class="k">FROM</span><span class="w"> </span><span class="s">alpine:latest</span>
+<span class="k">COPY</span><span class="w"> </span>--from<span class="o">=</span>builder<span class="w"> </span>/go/src/app<span class="w"> </span>/bin/app
+<span class="k">CMD</span><span class="w"> </span>/bin/app
+</pre></div>
+
+</div>
+
+<p>Можно ли сказать что образ, полученный в результате сборки с указанным <code>Dockerfile</code>, будет воспроизводимым?</p>
+
+<p>Нет. Эта заметка объясняет:</p>
+
+<ul>
+ <li>почему</li>
+ <li>как писать <code>Dockerfile</code> чтобы приблизиться к воспроизводимости</li>
+ <li>чем заменить <code>Dockerfile</code> чтобы сделать сборки воспроизводимыми</li></ul>
+<!-- more-->
+
+<h2 id="118939c4"><a href="#118939c4" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>про образы</h2>
+
+<p>Для начала давайте попробуем собрать предыдущий пример:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>mkdir<span class="w"> </span>tmp
+<span class="gp">$ </span><span class="nb">cd</span><span class="w"> </span>tmp
+<span class="gp">$ </span>touch<span class="w"> </span>Dockerfile
+<span class="gp"># </span>самое<span class="w"> </span>время<span class="w"> </span>наполнить<span class="w"> </span>Dockerfile<span class="w"> </span>содержимым<span class="w"> </span>из<span class="w"> </span>предыдущего<span class="w"> </span>сниппета
+</pre></div>
+
+</div>
+
+<p>Напишем простейшую программу на go:</p>
+
+<div class="brush: go">
+ <div class="source">
+  <pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="s">"fmt"</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">"hello world!"</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+
+</div>
+
+<p>Теперь можно всё это собрать командой <code>docker build --rm  -t corpix.github.io/test1 .</code>, после чего мы должны увидеть что-то похожее:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>docker<span class="w"> </span>images
+<span class="go">REPOSITORY                   TAG                 IMAGE ID            CREATED             SIZE</span>
+<span class="go">corpix.github.io/test1       latest              fda1a374151c        2 minutes ago       7.43MB</span>
+<span class="go">...</span>
+</pre></div>
+
+</div>
+
+<p>Проверим:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>corpix.github.io/test1
+<span class="go">hello world!</span>
+</pre></div>
+
+</div>
+
+<p>Работает.</p>
+
+<p>Теперь предположим что мы захотели проделать тоже самое через неделю, возможно на другом компьютере.</p>
+
+<ul>
+ <li>получим ли мы тот же самый компилятор <code>go</code> что и на прошлой неделе? возможно, но <strong>гарантий нет</strong></li>
+ <li>будет ли наш код выполняться в той же версии образа <code>alpine</code>? может быть да, но <strong>зависит от обстоятельств</strong></li></ul>
+
+<p>Мы не можем с уверенностью говорить о том что сборка воспроизводима в данном случае потому что используется тэг <code>latest</code>, который может меняться.</p>
+
+<p>Что с этим можно сделать? Очевидным решением является использование тэгов, которые указывают на конкретную версию своим названием. Например:</p>
+
+<ul>
+ <li>вместо <code>golang:latest</code> использовать <code>golang:1.11</code></li>
+ <li>вместо <code>alpine:latest</code> использовать <code>alpine:3.9</code></li></ul>
+
+<p>Решает ли этот подход изначальную проблему? Ничего подобного:</p>
+
+<ul>
+ <li>для <code>golang:1.11</code> иногда выпускаются и минорные версии, такие как <code>1.11.5</code>, они могут двигать тэг <code>1.11</code></li>
+ <li>когда проекты будут обновлять версию <code>go</code>/<code>alpine</code> придётся перелопатить великое множество <code>Dockerfile</code>&rsquo;ов</li></ul>
+
+<p>И вообще, тэги можно двигать, т.е. они by design не надежны и не дают гарантий воспроизводимости сборки. Если тэг подвинут и у вас на localhost закэширована старая версия образа то вас это спасёт, но часто сборка происходит в CI, кэш которого иногда дропается или со временем &ldquo;вымывается&rdquo;. Так что возможны различные странности в виде &ldquo;месяц назад собиралось, а сегодня уже нет&rdquo;.</p>
+
+<p>Как поступают с обновлением версий базовых образов мейнтейнеры, у которых много <code>Dockerfile</code>&rsquo;ов? Пишут <a href="https://github.com/docker-library/golang/blob/c58a1077faf66bd47ea9c0f3680b252572f26bb3/update.sh">скрипты</a>, которые генерируют <code>Dockerfile</code>&rsquo;ы из <a href="https://github.com/docker-library/golang/blob/c58a1077faf66bd47ea9c0f3680b252572f26bb3/Dockerfile-alpine.template">темплейтов</a>. Такой подход хорош для небольших вещей, но разве его можно назвать системным решением? [нет]</p>
+
+<h2 id="a0b70841"><a href="#a0b70841" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>про зависимости</h2>
+
+<p>До этого момента мы говорили лишь про образы, теперь поговорим о зависимостях&hellip; и раз уж я приводил примеры с базовым образом <code>golang</code> то продолжу.</p>
+
+<p>Ещё один источник невоспроизводимости кроется в использовании <a href="https://github.com/docker-library/golang/blob/c58a1077faf66bd47ea9c0f3680b252572f26bb3/1.11/alpine3.9/Dockerfile#L14-L19">системного пакетного менеджера</a> для установки зависимостей, например <code>apk</code> в <code>alpine</code>:</p>
+
+<div class="brush: shell">
+ <div class="source">
+  <pre><span></span>apk<span class="w"> </span>add<span class="w"> </span>bash<span class="w">     </span><span class="se">\</span>
+<span class="w">        </span>gcc<span class="w">      </span><span class="se">\</span>
+<span class="w">        </span>musl-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>openssl<span class="w">  </span><span class="se">\</span>
+<span class="w">        </span>go<span class="w">       </span><span class="se">\</span>
+<span class="w">        </span>...
+</pre></div>
+
+</div>
+
+<ul>
+ <li>откуда происходит установка инструментов?</li>
+ <li>какие версии инструментов получим в результате?</li>
+ <li>как часто они обновляются?</li></ul>
+
+<p>Всё это определяется менеджером пакетов и мейнтейнерами alpine, где последние способны выкатывать обновления, что значительно увеличивает вероятность получить новую версию <code>gcc</code> или другого пакета в какой-то момент.</p>
+
+<p>Является ли выходом указание конкретных версий пакетов при установке? например:</p>
+
+<div class="brush: shell">
+ <div class="source">
+  <pre><span></span>apk<span class="w"> </span>add<span class="w"> </span><span class="nv">packagename</span><span class="o">=</span><span class="m">1</span>.2.3
+</pre></div>
+
+</div>
+
+<p>Да, если опустить тот факт что политика версионирования зависит от людей, так что:</p>
+
+<ul>
+ <li>конкретная версия пакета может быть подменена мейнтейнером пакетного репозитория, вы скорее всего ничего не заметите</li>
+ <li>указывать версии при установке каждого инструмента это просто не удобно</li>
+ <li>обновлять версии пакетов будет крайне не удобно</li></ul>
+
+<p>Вобщем, с таким подходом гарантий конечно больше, но решение снова не системное. Постепенно переходя к иному способу исправления описанных проблем не могу не заметить один очень грустный &ldquo;паттерн&rdquo;, который повторяется от одного <code>Dockerfile</code>&rsquo;a к другому когда люди хотят проверить контрольную сумму скаченного софта/исходников:</p>
+
+<div class="brush: shell">
+ <div class="source">
+  <pre><span></span>wget<span class="w"> </span>-O<span class="w"> </span>go.tgz<span class="w"> </span><span class="s2">"https://golang.org/dl/go</span><span class="nv">$GOLANG_VERSION</span><span class="s2">.src.tar.gz"</span><span class="p">;</span><span class="w">                              </span><span class="se">\</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;bc1ef02bb1668835db1390a2e478dcbccb5dd16911691af9d75184bbe5aa943e *go.tgz&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sha256sum<span class="w"> </span>-c<span class="w"> </span>-<span class="p">;</span><span class="w"> </span><span class="se">\</span>
+...
+</pre></div>
+
+</div>
+
+<p>Здорово конечно что скриптинг даёт возможность решать огромное множество задач и наследие юникса настолько богато, но разве это не задача инструмента для сборки?</p>
+
+<h2 id="b3da883a"><a href="#b3da883a" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>решение</h2>
+
+<p>Легко заметить что многие проблемы исходили от использования <code>Dockerfile</code> как формата императивного описания сборки образа. Формат образа открыт и <a href="https://github.com/moby/moby/blob/master/image/spec/v1.2.md#docker-image-specification-v120">специфицирован</a>, так что почему бы не поискать инструменты, которые способны хорошо решать задачи сборки ПО и поддерживают данную спецификацию?</p>
+
+<p>Одним из таких инструментов является <a href="https://nixos.org/nix">nix</a>, вернее он сам не поддерживает сборку образов, но существует набор инструментов, созданный на базе nix, который <a href="https://nixos.org/nixpkgs/manual/#sec-pkgs-dockerTools">умеет собирать образы</a> и по счастливому стечению обстоятельств является одним из <a href="https://repology.org/repositories/statistics/total">самых крупных</a> репозиториев открытого ПО, да, я говорю о <a href="https://github.com/nixos/nixpkgs">nixpkgs</a>.</p>
+
+<p>Вот пример конфигурации, в которой описана сборка приложения на go и сборка образа:</p>
+
+<div class="brush: nix">
+ <div class="source">
+  <pre><span></span><span class="k">with</span> <span class="p">(</span><span class="nb">import</span> <span class="l">&lt;nixpkgs&gt;</span> <span class="p">{});</span>
+<span class="k">let</span>
+  <span class="ss">app</span> <span class="o">=</span> pkgs<span class="o">.</span>buildGoPackage <span class="k">rec</span> <span class="p">{</span>
+    <span class="ss">name</span> <span class="o">=</span> <span class="s2">"app-</span><span class="si">${</span>version<span class="si">}</span><span class="s2">"</span><span class="p">;</span>
+    <span class="ss">version</span> <span class="o">=</span> <span class="s2">"unstable-2019-02-03"</span><span class="p">;</span>
+    <span class="ss">goPackagePath</span> <span class="o">=</span> <span class="s2">"github.com/corpix/corpix.github.io/test2"</span><span class="p">;</span>
+    <span class="ss">src</span> <span class="o">=</span> <span class="l">./.</span><span class="p">;</span>
+    <span class="ss">buildPhase</span> <span class="o">=</span> <span class="s s-Multiline">&#39;&#39;</span>
+<span class="s s-Multiline">      go build -o app $src/main.go</span>
+<span class="s s-Multiline">    &#39;&#39;</span><span class="p">;</span>
+    <span class="ss">installPhase</span> <span class="o">=</span> <span class="s s-Multiline">&#39;&#39;</span>
+<span class="s s-Multiline">      mkdir -p $bin/bin</span>
+<span class="s s-Multiline">      mv app $bin/bin</span>
+<span class="s s-Multiline">    &#39;&#39;</span><span class="p">;</span>
+  <span class="p">};</span>
+<span class="k">in</span> pkgs<span class="o">.</span>dockerTools<span class="o">.</span>buildImage <span class="p">{</span>
+  <span class="ss">name</span> <span class="o">=</span> <span class="s2">"corpix.github.io/test2"</span><span class="p">;</span>
+  <span class="ss">tag</span> <span class="o">=</span> <span class="s2">"latest"</span><span class="p">;</span>
+
+  <span class="ss">contents</span> <span class="o">=</span> app<span class="p">;</span>
+
+  <span class="ss">runAsRoot</span> <span class="o">=</span> <span class="s s-Multiline">&#39;&#39;</span>
+<span class="s s-Multiline">    #!</span><span class="si">${</span>stdenv<span class="o">.</span>shell<span class="si">}</span>
+<span class="s s-Multiline">    </span><span class="si">${</span>dockerTools<span class="o">.</span>shadowSetup<span class="si">}</span>
+<span class="s s-Multiline">  &#39;&#39;</span><span class="p">;</span>
+
+  <span class="ss">config</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="ss">Cmd</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">"/bin/app"</span> <span class="p">];</span>
+  <span class="p">};</span>
+<span class="p">}</span>
+</pre></div>
+
+</div>
+
+<p>Чтобы опробовать данный пример создайте рядом с имеющимся <code>Dockerfile</code> дополнительно файл с именем <code>container.nix</code> и поместите туда содержимое из сниппета выше.</p>
+
+<p>Не обязательно иметь установленный <code>nix</code> чтобы выполнить сборку образа данным способом, данная сборка может быть запущена внутри контейнера, поскольку не использует никаких привилегированных системных функций. Так можно запустить контейнер, в окружении которого будет доступен <code>nix</code>:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/build<span class="w"> </span>-w<span class="w"> </span>/build<span class="w"> </span>-it<span class="w"> </span>nixos/nix:latest<span class="w"> </span>/bin/sh
+</pre></div>
+
+</div>
+
+<p>И для запуска сборки:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>nix-build<span class="w"> </span>container.nix
+<span class="go">these derivations will be built:</span>
+<span class="go">  /nix/store/05sc2xkxhml9y2ghqk305lwh557hvhgv-run-as-root.sh.drv</span>
+<span class="go">  /nix/store/kfx56w0bf4xbkxzn2wkf78dnvwfgl7rj-remove-references-to.drv</span>
+<span class="go">  /nix/store/8q23dq7238cf5dxciw8gggcp063j1px4-app-unstable-2019-02-03.drv</span>
+<span class="go">  /nix/store/f75qxsrvraxry2hxwdhb6hs7xivvd27y-vm-run-stage2.drv</span>
+<span class="go">  /nix/store/da2gn6bsp9l1qfhml44gfqwy1mpav0cr-vm-run.drv</span>
+<span class="go">  /nix/store/rl0q819byn3cfpbf196yy4knrf7qiaq6-test2-config.json.drv</span>
+<span class="go">  /nix/store/vfpvbnhjhb10mnaaslh1ck93pdbvhnlp-extra-commands.sh.drv</span>
+<span class="go">  /nix/store/w7prk8xslwj209xbw60p6c44ifp94zlm-docker-layer-test2.drv</span>
+<span class="go">  /nix/store/gb7hpl9c5wk9p4ywcayaybdywkk7c0i6-runtime-deps.drv</span>
+<span class="go">  /nix/store/5vvr6h8j57bl146vrb3kjxliy6qmp9gs-docker-image-test2.tar.gz.drv</span>
+<span class="go">these paths will be fetched (326.31 MiB download, 1361.59 MiB unpacked):</span>
+<span class="go">...</span>
+<span class="go">/nix/store/3vnmdfmifff9ig8vr78yz4l09ikjl5ii-docker-image-test2.tar.gz</span>
+</pre></div>
+
+</div>
+
+<blockquote>
+ <p>Хочу обратить внимание на то что в этом примере собирается образ без использования базового, т.е. как если бы мы использовали <code>FROM scratch</code> в <code>Dockerfile</code>.</p></blockquote>
+
+<p>После сборки в поток <code>stdout</code> будет выведен путь к собранному артефакту, который можно загрузить в docker с помощью <code>docker load &lt; archive.tar.gz</code>. Также рядом с <code>container.nix</code> будет создан symlink <code>result</code>, ведущий к tar.gz образа.</p>
+
+<p>Собрать и загрузить образ в docker можно и одной командой:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>nix-build<span class="w"> </span>container.nix<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>-n1<span class="w"> </span>docker<span class="w"> </span>load<span class="w"> </span>-i
+<span class="go">...</span>
+</pre></div>
+
+</div>
+
+<blockquote>
+ <p>Что конечно не заработает, если вы собираете образ с помощью <code>nix</code> в контейнере, потому что доступа к сокету docker скорее всего не будет.</p></blockquote>
+
+<p>Давайте скопируем его в нашу рабочую директорию, чтобы &ldquo;вытащить&rdquo; архив из контейнера и загрузить его в docker уже за пределами контейнера:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>cp<span class="w"> </span><span class="k">$(</span>readlink<span class="w"> </span>-f<span class="w"> </span>result<span class="k">)</span><span class="w"> </span>./
+<span class="gp">$ </span>ls<span class="w"> </span>-lah
+<span class="go">total 10896</span>
+<span class="go">drwxr-xr-x    1 1000     users        188 Feb  4 00:38 .</span>
+<span class="go">drwxr-xr-x    1 root     root         144 Feb  4 00:28 ..</span>
+<span class="go">-r--r--r--    1 root     root       10.6M Feb  4 00:38 3vnmdfmifff9ig8vr78yz4l09ikjl5ii-docker-image-test2.tar.gz</span>
+<span class="go">-rw-r--r--    1 1000     users        155 Feb  3 21:57 Dockerfile</span>
+<span class="go">-rw-r--r--    1 1000     users        652 Feb  4 00:16 container.nix</span>
+<span class="go">-rw-r--r--    1 1000     users         73 Feb  3 21:58 main.go</span>
+<span class="go">lrwxrwxrwx    1 root     root          69 Feb  4 00:35 result -&gt; /nix/store/3vnmdfmifff9ig8vr78yz4l09ikjl5ii-docker-image-test2.tar.gz</span>
+</pre></div>
+
+</div>
+
+<p>Теперь загрузим образ:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>docker<span class="w"> </span>load<span class="w"> </span>&lt;<span class="w"> </span>3vnmdfmifff9ig8vr78yz4l09ikjl5ii-docker-image-test2.tar.gz
+<span class="go">eb1d81974318: Loading layer [==================================================&gt;]  31.16MB/31.16MB</span>
+<span class="go">Loaded image: corpix.github.io/test2:latest</span>
+<span class="gp">$ </span>docker<span class="w"> </span>images
+<span class="go">REPOSITORY                   TAG                 IMAGE ID            CREATED             SIZE</span>
+<span class="go">corpix.github.io/test1       latest              fda1a374151c        3 hours ago         7.43MB</span>
+<span class="go">corpix.github.io/test2       latest              1132699ed641        49 years ago        29.3MB</span>
+</pre></div>
+
+</div>
+
+<p>В первом примере имя образа было <code>corpix.github.io/test1</code>.
+ <br /> Во втором соответственно <code>corpix.github.io/test2</code>.</p>
+
+<p>Попробуем его запустить:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>corpix.github.io/test2
+<span class="go">hello world!</span>
+</pre></div>
+
+</div>
+
+<p>Как мы видим всё работает и теперь с этим образом можно производить любые операции, которые свойствены обычному docker образу.</p>
+
+<p>Я уверен, у вас накопилось некоторое количество вопросов, так что пройдусь по самым вероятным:</p>
+
+<p><strong>Что это за язык такой для описания сборки?</strong></p>
+
+<blockquote>
+ <p>Это <code>nix</code>(имя совпадает с названием инструмента) и о языке можно почитать <a href="https://nixos.org/nix/manual/#ch-expression-language">вот здесь</a>, к сожалению пост получился и так достаточно ёмким, так что я не очень хочу вдаваться в подробности языка. Могу посоветовать открыть мануал, запустить <code>nix repl '&lt;nixpkgs&gt;'</code> в контейнере и поисследовать язык самостоятельно.</p></blockquote>
+
+<p><strong>Почему образ занимает немного больше места?</strong></p>
+
+<blockquote>
+ <p>Потому что используется glibc и упаковывает bash(кстати я пока не знаю зачем именно он там).</p></blockquote>
+
+<p><strong>Почему docker говорит что образ создан 49 лет назад?</strong></p>
+
+<blockquote>
+ <p>Nix обнуляет unix таймстемпы до &ldquo;unix epoch&rdquo;(<code>00:00:01 1 Jan 1970</code>). Это важная часть обеспечения бинарной воспроизводимости, поскольку нам негде сохранять &ldquo;стейт&rdquo;.</p></blockquote>
+
+<p><strong>Я вижу что в <code>runAsRoot</code> формируется какой-то скрипт, зачем он и как узнать его содержимое?</strong></p>
+
+<blockquote>
+ <p>Это <a href="https://nixos.org/nixpkgs/manual/#ex-dockerTools-buildImage-runAsRoot">скрипт</a>, который может что-то сделать от имени супер-пользователя при сборке контейнера(сборка происходит в qemu). Нам он нужен чтобы подготовить базовое окружение внутри контейнера, поскольку в этом примере мы не используем базовый контейнер. Чтобы узнать значение выражения в nix есть два способа. Первый интерактивный, у <code>nix</code> есть REPL, его можно запустить командой <code>nix repl '&lt;nixpkgs&gt;'</code>, которая предоставит REPL вместе с загруженным из текущего окружения nixpkgs. Второй предназначается для скриптов и я покажу его с выводом:</p></blockquote>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>nix-instantiate<span class="w"> </span>--eval<span class="w"> </span>--expr<span class="w"> </span><span class="s1">&#39;with import &lt;nixpkgs&gt; {}; stdenv.shell&#39;</span>
+<span class="go">"/nix/store/can00lfiynqkbsdkkmgp6qg8p8w92cxa-bash-4.4-p23/bin/bash"</span>
+<span class="gp">$ </span>nix-instantiate<span class="w"> </span>--eval<span class="w"> </span>--expr<span class="w"> </span><span class="s1">&#39;with import &lt;nixpkgs&gt; {}; dockerTools.shadowSetup&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span>.
+<span class="go">export PATH=/nix/store/1hx9psidid8b1ps72dhlj47745n4p7yi-shadow-4.6/bin:$PATH</span>
+<span class="go">mkdir -p /etc/pam.d</span>
+<span class="go">if [[ ! -f /etc/passwd ]]; then</span>
+<span class="go">  echo "root:x:0:0::/root:/nix/store/can00lfiynqkbsdkkmgp6qg8p8w92cxa-bash-4.4-p23/bin/bash" &gt; /etc/passwd</span>
+<span class="go">  echo "root:!x:::::::" &gt; /etc/shadow</span>
+<span class="go">fi</span>
+<span class="go">if [[ ! -f /etc/group ]]; then</span>
+<span class="go">  echo "root:x:0:" &gt; /etc/group</span>
+<span class="go">  echo "root:x::" &gt; /etc/gshadow</span>
+<span class="go">fi</span>
+<span class="go">if [[ ! -f /etc/pam.d/other ]]; then</span>
+<span class="go">  cat &gt; /etc/pam.d/other &lt;&lt;EOF</span>
+<span class="go">account sufficient pam_unix.so</span>
+<span class="go">auth sufficient pam_rootok.so</span>
+<span class="go">password requisite pam_unix.so nullok sha512</span>
+<span class="go">session required pam_unix.so</span>
+<span class="go">EOF</span>
+<span class="go">fi</span>
+<span class="go">if [[ ! -f /etc/login.defs ]]; then</span>
+<span class="go">  touch /etc/login.defs</span>
+<span class="go">fi</span>
+</pre></div>
+
+</div>
+
+<blockquote>
+ <p>(я в последнем примере <a href="https://stedolan.github.io/jq/">jq</a> использую чтобы сделать вывод строки с переносами более опрятным)</p></blockquote>
+
+<p>Теперь перейдём к главному: <strong>почему мы можем утверждать что данная сборка будет воспроизводимой?</strong></p>
+
+<p>На самом деле она не будет воспроизводимой из-за двух причин:</p>
+
+<ul>
+ <li>мы используем системный <code>nixpkgs</code>(первая строка <code>container.nix</code> его импортирует)</li>
+ <li>мы указываем в качестве хранилища исходного кода текущую директорию(<code>src = ./.</code>)</li></ul>
+
+<p>Объясню подробнее.</p>
+
+<p>Внутри <code>nixpkgs</code> содержатся похожие на <code>container.nix</code> конфигурации сборки, которые ссылаются на исходные коды ПО, зафиксированные в самой конфигурации по SHA256 сумме. От того, используем ли мы одинаковую ревизию <code>nixpkgs</code> на машинах, которым хотим обеспечить воспроизводимость сборки, во многом зависит воспроизводимость результата, который мы получим.</p>
+
+<p>В моём примере я не зафиксировал исходный код на конкретную SHA256 сумму, вместо этого я указал текущую директорию в качестве источника исходных кодов. Что произойдёт с этой директорией после сборки? В ней появится симлинк, что вызовет изменение mtime директории, что скажет <code>nix</code> о том что наш код должен быть пересобран и конечный &ldquo;артефакт&rdquo; получит новый хэш в &ldquo;хранилище артефактов&rdquo;, которое использует <code>nix</code> - <code>/nix/store</code>.</p>
+
+<p>Так что самое простое что мы можем сделать это положить <code>main.go</code> в отдельную директорию:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>mkdir<span class="w"> </span>app
+<span class="gp">$ </span>mv<span class="w"> </span>main.go<span class="w"> </span>app
+</pre></div>
+
+</div>
+
+<p>Рядом создадим файл с декларацией для сборки приложения:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>touch<span class="w"> </span>app/default.nix
+</pre></div>
+
+</div>
+
+<p>И наполним его следующим содержимым:</p>
+
+<div class="brush: nix">
+ <div class="source">
+  <pre><span></span><span class="k">with</span> <span class="p">(</span><span class="nb">import</span> <span class="l">&lt;nixpkgs&gt;</span> <span class="p">{});</span>
+pkgs<span class="o">.</span>buildGoPackage <span class="k">rec</span> <span class="p">{</span>
+  <span class="ss">name</span> <span class="o">=</span> <span class="s2">"app-</span><span class="si">${</span>version<span class="si">}</span><span class="s2">"</span><span class="p">;</span>
+  <span class="ss">version</span> <span class="o">=</span> <span class="s2">"unstable-2019-02-03"</span><span class="p">;</span>
+  <span class="ss">goPackagePath</span> <span class="o">=</span> <span class="s2">"github.com/corpix/corpix.github.io/test2"</span><span class="p">;</span>
+  <span class="ss">src</span> <span class="o">=</span> <span class="l">./.</span><span class="p">;</span>
+  <span class="ss">buildPhase</span> <span class="o">=</span> <span class="s s-Multiline">&#39;&#39;</span>
+<span class="s s-Multiline">    go build -o app $src/main.go</span>
+<span class="s s-Multiline">  &#39;&#39;</span><span class="p">;</span>
+  <span class="ss">installPhase</span> <span class="o">=</span> <span class="s s-Multiline">&#39;&#39;</span>
+<span class="s s-Multiline">    mkdir -p $bin/bin</span>
+<span class="s s-Multiline">    mv app $bin/bin</span>
+<span class="s s-Multiline">  &#39;&#39;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+</div>
+
+<p>И приведём <code>container.nix</code> к следующему виду:</p>
+
+<div class="brush: nix">
+ <div class="source">
+  <pre><span></span><span class="k">with</span> <span class="p">(</span><span class="nb">import</span> <span class="l">&lt;nixpkgs&gt;</span> <span class="p">{});</span>
+pkgs<span class="o">.</span>dockerTools<span class="o">.</span>buildImage <span class="p">{</span>
+  <span class="ss">name</span> <span class="o">=</span> <span class="s2">"corpix.github.io/test2"</span><span class="p">;</span>
+  <span class="ss">tag</span> <span class="o">=</span> <span class="s2">"latest"</span><span class="p">;</span>
+
+  <span class="ss">contents</span> <span class="o">=</span> <span class="nb">import</span> <span class="l">./app</span><span class="p">;</span>
+
+  <span class="ss">runAsRoot</span> <span class="o">=</span> <span class="s s-Multiline">&#39;&#39;</span>
+<span class="s s-Multiline">    #!</span><span class="si">${</span>stdenv<span class="o">.</span>shell<span class="si">}</span>
+<span class="s s-Multiline">    </span><span class="si">${</span>dockerTools<span class="o">.</span>shadowSetup<span class="si">}</span>
+<span class="s s-Multiline">  &#39;&#39;</span><span class="p">;</span>
+
+  <span class="ss">config</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="ss">Cmd</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">"/bin/app"</span> <span class="p">];</span>
+  <span class="p">};</span>
+<span class="p">}</span>
+</pre></div>
+
+</div>
+
+<p>Теперь mtime директории с исходником нашего приложения не меняется и образ всегда будет собираться одинаковый. Теперь давайте обеспечим воспроизводимость сборки между несколькими машинами. Для этого нам нужно будет синхронизировать используемую ревизию <code>nixpkgs</code>, возьмём для примера свежак <a href="https://github.com/NixOS/nixpkgs/tree/614b29a93b51e3438f6dc4c121229fcf2dcc2fbd">614b29a</a> и распакуем его рядом с <code>container.nix</code>:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>wget<span class="w"> </span>https://github.com/NixOS/nixpkgs/archive/614b29a.tar.gz
+<span class="go">...</span>
+<span class="gp">$ </span>tar<span class="w"> </span>xf<span class="w"> </span>614b29a.tar.gz
+<span class="gp">$ </span>ls<span class="w"> </span>-la
+<span class="go">-rw-r--r--   1 user           users    16042311 2019-02-04 01:25 614b29a.tar.gz</span>
+<span class="go">drwxr-xr-x   1 user           users         210 2019-02-03 14:12 nixpkgs-614b29a93b51e3438f6dc4c121229fcf2dcc2fbd</span>
+<span class="go">...</span>
+</pre></div>
+
+</div>
+
+<p>Теперь запустим docker контейнер с <code>nix</code>, добавив переменную окружения <code>NIX_PATH</code>:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>docker<span class="w"> </span>run<span class="w">                                                                  </span><span class="se">\</span>
+<span class="w">  </span>--rm<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/build<span class="w"> </span>-w<span class="w"> </span>/build<span class="w">                                             </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">NIX_PATH</span><span class="o">=</span><span class="nv">nixpkgs</span><span class="o">=</span>/build/nixpkgs-614b29a93b51e3438f6dc4c121229fcf2dcc2fbd<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-it<span class="w"> </span>nixos/nix:latest<span class="w"> </span>/bin/sh
+</pre></div>
+
+</div>
+
+<p>Данная переменная скажет <code>nix</code>: при каждом <code>import &lt;nixpkgs&gt;</code> нужно резолвить <code>&lt;nixpkgs&gt;</code> в <code>/build/nixpkgs-614b29a93b51e3438f6dc4c121229fcf2dcc2fbd</code>, таким образом загружаться будет файл <code>/build/nixpkgs-614b29a93b51e3438f6dc4c121229fcf2dcc2fbd/default.nix</code>.</p>
+
+<p>Теперь для эксперимента над воспроизводимостью сборки запустим два контейнера командой, которая указана выше и в обоих выполним <code>nix-build container.nix</code>. В каждом получим образ с одинаковой SHA256 суммой, например:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>ls<span class="w"> </span>-la<span class="w"> </span>result
+<span class="go">lrwxrwxrwx    1 root     root            69 Feb  4 01:40 result -&gt; /nix/store/abk6lm0cxq5fimyxfmlfzpdca4kwdc8s-docker-image-test2.tar.gz</span>
+<span class="gp">$ </span>sha256sum<span class="w"> </span>result
+<span class="go">86bccceff84e1f0537b24accc34d7768a1cb3a4d44921f918247c74252f24016  result</span>
+</pre></div>
+
+</div>
+
+<blockquote>
+ <p>Стоит заметить, что вам вряд ли удастся получить такую же SHA256 сумму, поскольку у нас с вами разные mtime на директории с исходниками приложения, которое я здесь контейнеризировал для примера. Пожалуй в будущем я поправлю статью чтобы приложение выкачивалось откуда-нибудь, либо заменю его на что-то что уже есть в <code>nixpkgs</code> чтобы сама статья стала воспроизводимой на все 100% :)</p></blockquote>
+
+<p>Теперь:</p>
+
+<ul>
+ <li>не нужно явно управлять версиями инструментов, достаточно управлять ревизией <code>nixpkgs</code></li>
+ <li>нет необходимости использовать кучу shell команд в <code>Dockerfile</code>, поскольку есть декларативный язык описания конфигурации</li>
+ <li>в получившемся контейнере будет 1 слой</li></ul>
+
+<p>Мы не пользовались базовыми образами(как если бы мы указали <code>FROM scratch</code> в <code>Dockerfile</code>), у нас нет зависимости, которая может внезапно поменяться, сборка полностью воспроизводима. Мы можем получить воспроизводимые сборки с базовыми образами, но я пока не описал их в данной статье, так что советую заглянуть в блог к Luca Bruno, он <a href="http://lethalman.blogspot.com/2016/04/cheap-docker-images-with-nix_15.html">описывает на примерах</a> сборку образов с помощью <code>nix</code> c бòльшим количеством деталей, так что его статья может очень хорошо дополнить полученные здесь знания.</p>
+  <footer>
+    <p>
+<time datetime="2019-02-03" pubdate="true">2019-02-03</time> <span class="tags"><a href="/tags/ru.html">ru</a>, <a href="/tags/docker.html">docker</a>, <a href="/tags/nix.html">nix</a></span></p>
+  </footer>
+</article>
+          </article>
+        </div>
+      </div>
+    </div>
+    <!-- remember: when you stare into the abyss the abyss stares back at you -->
+  </body>
+</html>

@@ -1,0 +1,431 @@
+<!--
+              -os//`               -os//`               -os//`               -os//`               -os//`               -os//`
+            /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-
+         `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.
+       -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+
+     :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`
+   :y/     oy           :y/     oy           :y/     oy           :y/     oy           :y/     oy           :y/     oy
+ `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:
+ h-  -os:             h-  -os:             h-  -os:             h-  -os:             h-  -os:             h-  -os:
+-y.os/`              -y.os/`              -y.os/`              -y.os/`              -y.os/`              -y.os/`
+`s/`                 `s/`                 `s/`                 `s/`                 `s/`                 `s/`
+
+                good place for libertarian propaganda, huh? :)
+                «IT WAS SO COLD THIS MORNING. I SAW A SOCIALIST WITH HIS HANDS IN HIS OWN POCKETS»
+
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Using Certbot with Knot DNS (knsupdate)</title>
+
+    <meta name="description"           content="This is a note about the integration of the Certbot with Let's encrypt DNS-01 authentication mechanism. Will not use any cloud services (fuck cloud), just self-hosted DNS instances, like good old times. I'll show how to configure Knot DNS to accept dynami...">
+    <meta name="author"                content="Dmitry Moskowski">
+    <meta name="keywords"              content="en, certbot, tls, letsencrypt, knot, dns, knsupdate">
+    <meta name="viewport"              content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <link rel="shortcut icon" href="/img/favicon.png">
+    <link rel="stylesheet"    type="text/css" href="/css/normalize.css">
+    <link rel="stylesheet"    type="text/css" href="/css/theme.css">
+
+    <link rel="alternate" type="application/atom+xml" href="/feeds/all.atom.xml" title="Atom Feed">
+    <link rel="alternate" type="application/rss+xml"  href="/feeds/all.rss.xml"  title="RSS Feed">
+
+    <link rel="canonical" href="https://corpix.dev/2022/02/using-certbot-with-knot-dns-knsupdate.html">
+
+    <link rel="next" href="/2019/03/choosing-the-best-adhesive-for-go-code-1.html">
+    <link rel="prev" href="/2022/02/collaborative-editing-with-emacs.html">
+
+    <script>
+      // corpix: "никакого джаваскрипта на страницах нет и не будет"
+      // это последний, бросаю, с завтрашнего дня больше никакого джаваскрипта
+      // честно
+      document.documentElement.setAttribute('class', (function (d) {
+          var month = '' + (d.getMonth() + 1),
+              day   = '' + d.getDate(),
+              year  = d.getFullYear();
+          if (month.length < 2) month = '0' + month;
+          if (day.length < 2)   day   = '0' + day;
+          return 'yyyyddmm'+year+month+day+' ddmm'+month+day;
+      })(new Date()));
+    </script>
+  </head>
+  <body>
+    <div class="root">
+      <div class="container">
+        <div class="header">
+          <div class="logo">
+            <a href="/">
+              <img src="/img/logo.svg" title="OH MY GOD HE GOTS A KNIFE"/>
+            </a>
+          </div>
+          <nav class="navigation">
+            <a href="/">Home</a>
+            <a href="/feeds/all.rss.xml">RSS</a>
+            <a href="/projects.html">Projects</a>
+            <a href="/study.html">Study</a>
+            <a href="/about.html">About</a>
+          </nav>
+        </div>
+        <div class="content">
+          <!-- the one good licence for opensource is unlicense -->
+          <article>
+            <article>
+  <header>
+    <h1>Using Certbot with Knot DNS (knsupdate)</h1>
+  </header>
+
+<p>This is a note about the integration of the Certbot with Let&rsquo;s encrypt DNS&ndash;01 authentication mechanism. Will not use any cloud services (fuck cloud), just self-hosted DNS instances, like good old times. I&rsquo;ll show how to configure Knot DNS to accept dynamic DNS updates from <code>knsupdate</code> and how to create a rudimentary hook for Certbot which will use <code>knsupdate</code> to set <code>TXT</code> records with <code>_acme-challenge</code>.</p>
+<!-- more-->
+
+<h2 id="b6ef6548"><a href="#b6ef6548" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>Knot-specific configuration</h2>
+
+<p>Say we have two DNS servers:</p>
+
+<ul>
+ <li><code>ns1.example.com</code></li>
+ <li><code>ns2.example.com</code></li></ul>
+
+<p>We need a key which will be used to sign our dynamic DNS updates. Here is how to generate it with <code>keymgr</code> (which is part of Knot):</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>keymgr<span class="w"> </span>tsig<span class="w"> </span>generate<span class="w"> </span>-t<span class="w"> </span>dyndns<span class="w"> </span>hmac-sha512<span class="w"> </span><span class="p">|</span><span class="w"> </span>tee<span class="w"> </span>/secrets/dyndns
+<span class="gp"># </span>hmac-sha512:dyndns:Me2/vFaNQp7dNXeNt3NuMgRWujxO5g1HwyV8nmn1YerdulKhMoFe8UjBvEfFVTYJmBywSoX4VIDzuaCdlfTbXA<span class="o">==</span>
+<span class="go">key:</span>
+<span class="go">  - id: dyndns</span>
+<span class="go">    algorithm: hmac-sha512</span>
+<span class="go">    secret: Me2/vFaNQp7dNXeNt3NuMgRWujxO5g1HwyV8nmn1YerdulKhMoFe8UjBvEfFVTYJmBywSoX4VIDzuaCdlfTbXA=</span>
+</pre></div>
+
+</div>
+
+<p>For our example we saving this into <code>/secrets/dyndns</code> and will include this secret in configuration. Field with label <code>id</code> is mandatory and will be used to reference this secret from configuration.</p>
+
+<p>Here is part of Knot configuration:</p>
+
+<blockquote>
+ <p>I assume you have Knot configured and running. If not then this is out of scope for this article. See <a href="https://www.knot-dns.cz/docs/latest/html/configuration.html">Knot documentation</a>.</p></blockquote>
+
+<div class="brush: yaml">
+ <div class="source">
+  <pre><span></span><span class="nt">include</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/secrets/dyndns</span>
+<span class="nt">acl</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dyndns</span>
+<span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dyndns</span>
+<span class="w">    </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">update</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+
+<span class="nt">template</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
+<span class="w">    </span><span class="nt">acl</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">dyndns</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="nt">zone</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">domain</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">_acme-challenge.example.com</span>
+<span class="w">    </span><span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
+<span class="w">    </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/data/_acme-challenge.example.com.zone</span>
+</pre></div>
+
+</div>
+
+<p>We define ACL which references previously generated key, then we reference ACL in template which will be used to control updates for <code>_acme-challenge.example.com</code> zone.</p>
+
+<blockquote>
+ <p><strong>Why separate zone for <code>_acme-challenge</code>?</strong> 
+  <br /> Because my configuration does not include <code>master</code> and <code>slave</code> roles so we have no notifications between servers, I have reasons to do this to mitigate possible zone serial collisions which may break whole zone (my zones are static read-only files provisioned with configuration managements system)</p></blockquote>
+
+<p>Now let&rsquo;s describe <code>/data/_acme-challenge.example.com.zone</code> file:</p>
+
+<div class="brush: dns">
+ <div class="source">
+  <pre><span></span>$TTL 86400
+
+_acme-challenge.example.com. 10 IN SOA ns1.example.com. root.example.com. (2022021700 86400 600 864000 60)
+
+_acme-challenge.example.com. IN NS ns1.example.com.
+_acme-challenge.example.com. IN NS ns2.example.com.
+</pre></div>
+
+</div>
+
+<blockquote>
+ <p>For any subdomains like <code>service.example.com</code> we should provide same <code>NS</code> records as we have in <code>example.com</code> zone or Let&rsquo;s Encrypt API may complain.</p></blockquote>
+
+<p>This configuration should be enough for <code>knsupdate</code> to work. Will check in next step.</p>
+
+<h2 id="88872148"><a href="#88872148" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>Dynamic DNS updates with <code>knsupdate</code></h2>
+
+<p>You could find <code>knsupdate</code> manual <a href="https://www.knot-dns.cz/docs/2.5/html/man_knsupdate.html">here</a>.</p>
+
+<p>Let&rsquo;s setup some env variables which we will use in code snippets below:</p>
+
+<blockquote>
+ <p>Pay attention to <code>KNOT_KEY</code> it will have value: 
+  <br /> <code>hmac-sha512:dyndns:Me2/vFaNQp7dNXeNt3NuMgRWujxO5g1HwyV8nmn1YerdulKhMoFe8UjBvEfFVTYJmBywSoX4VIDzuaCdlfTbXA==</code></p></blockquote>
+
+<div class="brush: bash">
+ <div class="source">
+  <pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_SERVER</span><span class="o">=</span>ns1.example.com
+<span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_KEY</span><span class="o">=</span><span class="k">$(</span>cat<span class="w"> </span>/secrets/dyndns<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span><span class="s1">&#39;s/^#\s*//g&#39;</span><span class="k">)</span>
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_ZONE</span><span class="o">=</span>_acme-challenge.example.com
+<span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_SUBJECT</span><span class="o">=</span>example.com
+<span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_SUBJECT_VALUE</span><span class="o">=</span>test-txt-record-value
+</pre></div>
+
+</div>
+
+<p>Set <code>TXT</code> record value with <code>TTL = 60</code>:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>cat<span class="w"> </span>&lt;&lt;EOF<span class="w"> </span><span class="p">|</span><span class="w"> </span>knsupdate
+<span class="go">server ${KNOT_SERVER}</span>
+<span class="go">key ${KNOT_KEY}</span>
+<span class="go">zone ${KNOT_ZONE}.</span>
+<span class="go">update add _acme-challenge.${KNOT_SUBJECT}. 60 TXT "${KNOT_SUBJECT_VALUE}"</span>
+<span class="go">send</span>
+<span class="go">quit</span>
+<span class="go">EOF</span>
+</pre></div>
+
+</div>
+
+<p>This should silently exit with <code>0</code> code. In case of error you will get some messages.</p>
+
+<p>Now let&rsquo;s request our <code>TXT</code> record directly from the nameserver:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>host<span class="w"> </span>-t<span class="w"> </span>TXT<span class="w"> </span><span class="si">${</span><span class="nv">KNOT_ZONE</span><span class="si">}</span>.<span class="w"> </span><span class="si">${</span><span class="nv">KNOT_SERVER</span><span class="si">}</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="si">${</span><span class="nv">KNOT_ZONE</span><span class="si">}</span>
+<span class="go">_acme-challenge.example.com descriptive text "test-txt-record-value"</span>
+</pre></div>
+
+</div>
+
+<p>We have a value. Now let&rsquo;s delete record:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>cat<span class="w"> </span>&lt;&lt;EOF<span class="w"> </span><span class="p">|</span><span class="w"> </span>knsupdate
+<span class="go">server ${KNOT_SERVER}</span>
+<span class="go">key ${KNOT_KEY}</span>
+<span class="go">zone ${KNOT_ZONE}.</span>
+<span class="go">update del _acme-challenge.${KNOT_SUBJECT}. TXT</span>
+<span class="go">send</span>
+<span class="go">quit</span>
+<span class="go">EOF</span>
+</pre></div>
+
+</div>
+
+<p>Make sure it is really deleted:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>host<span class="w"> </span>-t<span class="w"> </span>TXT<span class="w"> </span><span class="si">${</span><span class="nv">KNOT_ZONE</span><span class="si">}</span>.<span class="w"> </span><span class="si">${</span><span class="nv">KNOT_SERVER</span><span class="si">}</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="si">${</span><span class="nv">KNOT_ZONE</span><span class="si">}</span>
+<span class="go">_acme-challenge.example.com has no TXT record</span>
+</pre></div>
+
+</div>
+
+<p>Good, we are ready to make Certbot hook.</p>
+
+<h2 id="7a15f6dd"><a href="#7a15f6dd" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>Certbot hook</h2>
+
+<p>Certbot documentation about <code>manual-auth-hook</code> is <a href="https://eff-certbot.readthedocs.io/en/stable/using.html#manual-renewal">here</a>.</p>
+
+<p>Also you can read about variables available inside hook <a href="https://eff-certbot.readthedocs.io/en/stable/using.html#hooks">here</a>.</p>
+
+<p>As we have do in previous paragraph, let&rsquo;s define some variables which will be used in code snippets below:</p>
+
+<div class="brush: bash">
+ <div class="source">
+  <pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_SERVER</span><span class="o">=</span>ns1.example.com
+<span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_KEY</span><span class="o">=</span><span class="k">$(</span>cat<span class="w"> </span>/secrets/dyndns<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span><span class="s1">&#39;s/^#\s*//g&#39;</span><span class="k">)</span>
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_ZONE</span><span class="o">=</span>_acme-challenge.example.com
+<span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_SUBJECT</span><span class="o">=</span>example.com
+</pre></div>
+
+</div>
+
+<p>It is time to write our hook. It will use <code>knsupdate</code> to update records on each DNS server of the <code>KNOT_ZONE</code>.</p>
+
+<p>This hook will accept two subcommands/actions:</p>
+
+<ul>
+ <li><code>cleanup</code></li>
+ <li><code>auth</code> (default, implicitly calls <code>cleanup</code> before execution)</li></ul>
+
+<blockquote>
+ <p>Subcommand <code>auth</code> will be invoked if no subcommand has been provided.</p></blockquote>
+
+<p>Open <code>certbot-knsupdate-hook.sh</code> and write:</p>
+
+<div class="brush: bash">
+ <div class="source">
+  <pre><span></span><span class="ch">#! /usr/bin/env bash</span>
+<span class="nb">set</span><span class="w"> </span>-e
+<span class="nb">set</span><span class="w"> </span>-o<span class="w"> </span>pipefail
+
+<span class="nv">nameservers</span><span class="o">=</span><span class="k">$(</span>host<span class="w"> </span>-t<span class="w"> </span>NS<span class="w"> </span><span class="si">${</span><span class="nv">KNOT_ZONE</span><span class="si">}</span>.<span class="w"> </span><span class="si">${</span><span class="nv">KNOT_SERVER</span><span class="si">}</span><span class="w">   </span><span class="se">\</span>
+<span class="w">                  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-F<span class="w"> </span><span class="s1">&#39; name server &#39;</span><span class="w">             </span><span class="se">\</span>
+<span class="w">                  </span><span class="p">|</span><span class="w"> </span>awk<span class="w">  </span>-F<span class="w"> </span><span class="s1">&#39; name server &#39;</span><span class="w"> </span><span class="s1">&#39;{print $2}&#39;</span><span class="k">)</span>
+
+cleanup<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>!<span class="w"> </span>-z<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">CERTBOT_AUTH_OUTPUT</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">]</span>
+<span class="w">    </span><span class="k">then</span>
+<span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="si">${</span><span class="nv">CERTBOT_AUTH_OUTPUT</span><span class="si">}</span>
+<span class="w">    </span><span class="k">fi</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span>nameserver<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="si">${</span><span class="nv">nameservers</span><span class="si">}</span>
+<span class="w">    </span><span class="k">do</span>
+<span class="w">        </span>cat<span class="w"> </span><span class="s">&lt;&lt;EOF | knsupdate || true</span>
+<span class="s">server ${nameserver}</span>
+<span class="s">key ${KNOT_KEY}</span>
+<span class="s">zone ${KNOT_ZONE}.</span>
+<span class="s">update del _acme-challenge.${KNOT_SUBJECT}. TXT</span>
+<span class="s">send</span>
+<span class="s">quit</span>
+<span class="s">EOF</span>
+<span class="w">    </span><span class="k">done</span>
+<span class="o">}</span>
+
+<span class="c1">##</span>
+
+<span class="k">case</span><span class="w"> </span><span class="s2">"</span><span class="nv">$1</span><span class="s2">"</span><span class="w"> </span><span class="k">in</span>
+<span class="w">    </span>cleanup<span class="o">)</span>
+<span class="w">        </span>cleanup
+<span class="w">        </span><span class="p">;;</span>
+<span class="w">    </span>auth<span class="w"> </span><span class="p">|</span><span class="w"> </span>*<span class="o">)</span>
+<span class="w">        </span>cleanup
+<span class="w">        </span><span class="nb">trap</span><span class="w"> </span>cleanup<span class="w"> </span>ERR
+<span class="w">        </span><span class="k">for</span><span class="w"> </span>nameserver<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="si">${</span><span class="nv">nameservers</span><span class="si">}</span>
+<span class="w">        </span><span class="k">do</span>
+<span class="w">            </span>cat<span class="w"> </span><span class="s">&lt;&lt;EOF | knsupdate</span>
+<span class="s">server ${nameserver}</span>
+<span class="s">key ${KNOT_KEY}</span>
+<span class="s">zone ${KNOT_ZONE}.</span>
+<span class="s">update add _acme-challenge.${KNOT_SUBJECT}. 60 TXT "${CERTBOT_VALIDATION}"</span>
+<span class="s">send</span>
+<span class="s">quit</span>
+<span class="s">EOF</span>
+<span class="w">        </span><span class="k">done</span>
+<span class="w">        </span><span class="p">;;</span>
+<span class="k">esac</span>
+</pre></div>
+
+</div>
+
+<p>We have two subcommands, but certbot may only run scripts, it can not pass any arguments to this scripts. And we need to call <code>cleanup</code> after <code>auth</code>.</p>
+
+<p>Because of this we need to create a separate wrapper for <code>cleanup</code> subcommand, open <code>certbot-knsupdate-cleanup-hook.sh</code> and write:</p>
+
+<div class="brush: bash">
+ <div class="source">
+  <pre><span></span><span class="ch">#! /usr/bin/env bash</span>
+<span class="nb">exec</span><span class="w"> </span>./certbot-knsupdate-hook.sh<span class="w"> </span>cleanup
+</pre></div>
+
+</div>
+
+<blockquote>
+ <p>Of course all <code>.sh</code> should have <code>x</code> chmod, so don&rsquo;t forget to <code>chmod +x</code> them</p></blockquote>
+
+<p>We are ready to run Certbot with this hooks:</p>
+
+<blockquote>
+ <p>Will be using staging certificate authority (<code>--test-cert</code> option)</p></blockquote>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>mkdir<span class="w"> </span>acme
+<span class="gp">$ </span>certbot<span class="w"> </span>certonly<span class="w">                                                  </span><span class="se">\</span>
+<span class="w">          </span>--manual<span class="w"> </span>-n<span class="w"> </span>-m<span class="w"> </span>root@example.com<span class="w"> </span>--agree-tos<span class="w">               </span><span class="se">\</span>
+<span class="w">          </span>--test-cert<span class="w"> </span>--expand<span class="w">                                      </span><span class="se">\</span>
+<span class="w">          </span>--config-dir<span class="o">=</span>./acme<span class="w">                                       </span><span class="se">\</span>
+<span class="w">          </span>--work-dir<span class="o">=</span>./acme<span class="w">                                         </span><span class="se">\</span>
+<span class="w">          </span>--logs-dir<span class="o">=</span>./acme<span class="w">                                         </span><span class="se">\</span>
+<span class="w">          </span>--preferred-challenges<span class="o">=</span>dns<span class="w">                                </span><span class="se">\</span>
+<span class="w">          </span>--manual-auth-hook<span class="o">=</span>./certbot-knsupdate-hook.sh<span class="w">            </span><span class="se">\</span>
+<span class="w">          </span>--manual-cleanup-hook<span class="o">=</span>./certbot-knsupdate-cleanup-hook.sh<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>-d<span class="w"> </span><span class="s2">"*.</span><span class="si">${</span><span class="nv">KNOT_SUBJECT</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>-d<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">KNOT_SUBJECT</span><span class="si">}</span><span class="s2">"</span>
+</pre></div>
+
+</div>
+
+<p>This will issue a wildcard certificate for <code>KNOT_SUBJECT</code> and add non-wildcard hostname as alternative name into the certificate.</p>
+
+<p>Certbot will output something similar to:</p>
+
+<div class="brush: text">
+ <div class="source">
+  <pre><span></span>Saving debug log to /home/user/projects/corpix.dev/acme/letsencrypt.log
+
+Successfully received certificate.
+Certificate is saved at: /home/user/projects/corpix.dev/acme/live/example.com/fullchain.pem
+Key is saved at: /home/user/projects/corpix.dev/acme/live/example.com/privkey.pem
+
+This certificate expires on 2022-05-18.
+These files will be updated when the certificate renews.
+
+NEXT STEPS:
+- The certificate will need to be renewed before it expires. Certbot can automatically renew the certificate in the background, but you may need to take steps to enable that functionality. See https://certbot.org/renewal-setup for instructions.
+</pre></div>
+
+</div>
+
+<blockquote>
+ <p>If it complains see <code>./acme/letsencrypt.log</code>, it should contain some information which helps.</p></blockquote>
+
+<p>Finally we could dump certificate information with <code>openssl</code> to make sure it contains expected data:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>openssl<span class="w"> </span>x509<span class="w"> </span>-noout<span class="w"> </span>-text<span class="w"> </span>-in<span class="w"> </span>./acme/live/example.com/cert.pem
+<span class="go">Certificate:</span>
+<span class="go">    Data:</span>
+<span class="go">...</span>
+<span class="go">        Issuer: C = US, O = (STAGING) Let&#39;s Encrypt, CN = (STAGING) Artificial Apricot R3</span>
+<span class="go">        Validity</span>
+<span class="go">            Not Before: Feb 17 15:06:00 2022 GMT</span>
+<span class="go">            Not After : May 18 15:06:00 2022 GMT</span>
+<span class="go">        Subject: CN = *.example.com</span>
+
+<span class="go">...</span>
+
+<span class="go">            Authority Information Access:</span>
+<span class="go">                OCSP - URI:http://stg-r3.o.lencr.org</span>
+<span class="go">                CA Issuers - URI:http://stg-r3.i.lencr.org/</span>
+
+<span class="go">            X509v3 Subject Alternative Name:</span>
+<span class="go">                DNS:*.example.com, DNS:example.com</span>
+<span class="go">...</span>
+</pre></div>
+
+</div>
+  <footer>
+    <p>
+<time datetime="2022-02-17" pubdate="true">2022-02-17</time> <span class="tags"><a href="/tags/en.html">en</a>, <a href="/tags/certbot.html">certbot</a>, <a href="/tags/tls.html">tls</a>, <a href="/tags/letsencrypt.html">letsencrypt</a>, <a href="/tags/knot.html">knot</a>, <a href="/tags/dns.html">dns</a>, <a href="/tags/knsupdate.html">knsupdate</a></span></p>
+  </footer>
+</article>
+          </article>
+        </div>
+      </div>
+    </div>
+    <!-- remember: when you stare into the abyss the abyss stares back at you -->
+  </body>
+</html>

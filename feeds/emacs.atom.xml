@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+ <title type="text">corpix/blog: Posts tagged 'emacs'</title>
+ <link rel="self" href="https://corpix.dev/feeds/emacs.atom.xml" />
+ <link href="https://corpix.dev/tags/emacs.html" />
+ <id>urn:https-corpix-dev:-tags-emacs-html</id>
+ <updated>2022-02-20T21:00:00Z</updated>
+ <entry>
+  <title type="text">Collaborative editing with Emacs</title>
+  <link rel="alternate" href="https://corpix.dev/2022/02/collaborative-editing-with-emacs.html?utm_source=emacs&amp;utm_medium=Atom" />
+  <id>urn:https-corpix-dev:-2022-02-collaborative-editing-with-emacs-html</id>
+  <published>2022-02-20T21:00:00Z</published>
+  <updated>2022-02-20T21:00:00Z</updated>
+  <author>
+   <name>Dmitry Moskowski</name></author>
+  <content type="html">
+&lt;p&gt;This note is about using Emacs for collaborative editing with help of package called &lt;a href="https://code.librehq.com/qhong/crdt.el"&gt;crdt.el&lt;/a&gt;.&lt;/p&gt;&lt;a href="https://corpix.dev/2022/02/collaborative-editing-with-emacs.html?utm_source=emacs&amp;amp;utm_medium=Atom"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</content></entry>
+ <entry>
+  <title type="text">emacs + go-mode + lsp + REPL</title>
+  <link rel="alternate" href="https://corpix.dev/2019/02/emacs-go-mode-lsp-repl.html?utm_source=emacs&amp;utm_medium=Atom" />
+  <id>urn:https-corpix-dev:-2019-02-emacs-go-mode-lsp-repl-html</id>
+  <published>2019-02-02T16:46:44Z</published>
+  <updated>2019-02-02T16:46:44Z</updated>
+  <author>
+   <name>Dmitry Moskowski</name></author>
+  <content type="html">
+&lt;p&gt;Некоторое время назад я начал переезжать с spacemacs обратно на самописную конфигурацию(мне так стабильнее и кастомайзить проще). Common LISP и scheme работают почти без настройки, а вот с golang пришлось поплясать.&lt;/p&gt;
+
+&lt;p&gt;Цель: настроить среду разработки, которая способна:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;к автокомплиту&lt;/li&gt;
+ &lt;li&gt;выводу документации&lt;/li&gt;
+ &lt;li&gt;go to definition&lt;/li&gt;&lt;/ul&gt;
+
+&lt;p&gt;Это минимум, необходимый мне для работы.&lt;/p&gt;
+
+&lt;p&gt;Скажу сразу:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;не всё заработало&lt;/li&gt;
+ &lt;li&gt;некоторые вещи тормозят&lt;/li&gt;
+ &lt;li&gt;некоторые работают странно&lt;/li&gt;&lt;/ul&gt;
+
+&lt;p&gt;Но жить можно, плюс ко всему - понятно что улучшать.&lt;/p&gt;&lt;a href="https://corpix.dev/2019/02/emacs-go-mode-lsp-repl.html?utm_source=emacs&amp;amp;utm_medium=Atom"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</content></entry></feed>

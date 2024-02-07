@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+ <title type="text">corpix/blog: Posts tagged 'series:go-adhesive'</title>
+ <link rel="self" href="https://corpix.dev/feeds/series-go-adhesive.atom.xml" />
+ <link href="https://corpix.dev/tags/series-go-adhesive.html" />
+ <id>urn:https-corpix-dev:-tags-series-go-adhesive-html</id>
+ <updated>2019-03-31T00:00:00Z</updated>
+ <entry>
+  <title type="text">choosing the best adhesive for Go code #1</title>
+  <link rel="alternate" href="https://corpix.dev/2019/03/choosing-the-best-adhesive-for-go-code-1.html?utm_source=series-go-adhesive&amp;utm_medium=Atom" />
+  <id>urn:https-corpix-dev:-2019-03-choosing-the-best-adhesive-for-go-code-1-html</id>
+  <published>2019-03-31T00:00:00Z</published>
+  <updated>2019-03-31T00:00:00Z</updated>
+  <author>
+   <name>Dmitry Moskowski</name></author>
+  <content type="html">
+&lt;p&gt;Одна из сторон языка Go, за которую его многие любят, это простота. Она же является и его слабостью, выражающейся в увеличении количества кода вместе с повышением уровня абстракции.&lt;/p&gt;
+
+&lt;p&gt;Я хочу писать более абстрактный код там где это требуется, снимая ограничения системы типов если это необходимо. Для этого в &lt;a href="/tags/series-go-adhesive.html"&gt;серии&lt;/a&gt; статей буду искать такую реализацию скриптового языка, которую можно подружить с Go рантаймом и я точно знаю что хочу нечто lisp-подобное.&lt;/p&gt;
+
+&lt;p&gt;Зачем такой язык нужен:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;конфигурация: на скриптовом языке описывается конфигурация приложения&lt;/li&gt;
+ &lt;li&gt;инициализация: из кода на интерпретируемом языке происходит инициализация компонентов, написанных на языке компилируемом&lt;/li&gt;
+ &lt;li&gt;расширение: виртуальной машине интерпретируемого языка в некоторые моменты передаётся управление с целью увеличения гибкости&lt;/li&gt;&lt;/ul&gt;&lt;a href="https://corpix.dev/2019/03/choosing-the-best-adhesive-for-go-code-1.html?utm_source=series-go-adhesive&amp;amp;utm_medium=Atom"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</content></entry></feed>
