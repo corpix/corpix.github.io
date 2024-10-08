@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+ <title type="text">corpix/blog: Posts tagged 'nixos'</title>
+ <link rel="self" href="https://corpix.dev/feeds/nixos.atom.xml" />
+ <link href="https://corpix.dev/tags/nixos.html" />
+ <id>urn:https-corpix-dev:-tags-nixos-html</id>
+ <updated>2024-02-06T09:00:00Z</updated>
+ <entry>
+  <title type="text">Flashing Tuya WT5 dimmer with openbeken</title>
+  <link rel="alternate" href="https://corpix.dev/2024/02/flashing-tuya-wt5-dimmer-with-openbeken.html?utm_source=nixos&amp;utm_medium=Atom" />
+  <id>urn:https-corpix-dev:-2024-02-flashing-tuya-wt5-dimmer-with-openbeken-html</id>
+  <published>2024-02-06T09:00:00Z</published>
+  <updated>2024-02-06T09:00:00Z</updated>
+  <author>
+   <name>Dmitry Moskowski</name></author>
+  <content type="html">&lt;a href="https://corpix.dev/2024/02/flashing-tuya-wt5-dimmer-with-openbeken.html?utm_source=nixos&amp;amp;utm_medium=Atom"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</content></entry>
+ <entry>
+  <title type="text">Terraforming NixOS hosts</title>
+  <link rel="alternate" href="https://corpix.dev/2022/08/terraforming-nixos-hosts.html?utm_source=nixos&amp;utm_medium=Atom" />
+  <id>urn:https-corpix-dev:-2022-08-terraforming-nixos-hosts-html</id>
+  <published>2022-08-28T21:00:00Z</published>
+  <updated>2022-08-28T21:00:00Z</updated>
+  <author>
+   <name>Dmitry Moskowski</name></author>
+  <content type="html">
+&lt;p&gt;I&amp;rsquo;ve made a provider to deploy Nixos hosts with Terraform.&lt;/p&gt;
+
+&lt;p&gt;Here is a list of features it support at this moment:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;configuration deployment&lt;/li&gt;
+ &lt;li&gt;secrets deployment&lt;/li&gt;
+ &lt;li&gt;SSH bastions&lt;/li&gt;
+ &lt;li&gt;provider, Nix, SSH settings overriding on per-host basis&lt;/li&gt;
+ &lt;li&gt;host addresses prioritization&lt;/li&gt;&lt;/ul&gt;&lt;a href="https://corpix.dev/2022/08/terraforming-nixos-hosts.html?utm_source=nixos&amp;amp;utm_medium=Atom"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</content></entry>
+ <entry>
+  <title type="text">run PostgreSQL by hands</title>
+  <link rel="alternate" href="https://corpix.dev/2019/02/run-postgresql-by-hands.html?utm_source=nixos&amp;utm_medium=Atom" />
+  <id>urn:https-corpix-dev:-2019-02-run-postgresql-by-hands-html</id>
+  <published>2019-02-25T18:47:15Z</published>
+  <updated>2019-02-25T18:47:15Z</updated>
+  <author>
+   <name>Dmitry Moskowski</name></author>
+  <content type="html">
+&lt;p&gt;Раз в год (или около того) мне нужно запустить PostgreSQL с целью поразрабатывать что-нибудь. За то время что я его не использую знания выветриваются, так что на будущее я делаю эту заметку, в основном для себя.&lt;/p&gt;
+
+&lt;p&gt;Запускать PostgreSQL можно разными способами, вот два самых распространенных:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;использовать docker&lt;/li&gt;
+ &lt;li&gt;поставить пакет&lt;/li&gt;&lt;/ul&gt;
+
+&lt;p&gt;Оба способа немного магические. Контейнеры стараются быть удобными и покрывать как можно больше функциональности, что выливается в адские entrypoint&amp;rsquo;ы на bash с обратным удобству эффектом. Пакеты в распространенных дистрибутивах тоже содержат не мало магии, ведь они обычно (как минимум) инициализируют директорию с данными СУБД и запускают её сервис.&lt;/p&gt;
+
+&lt;p&gt;В nixos тоже есть пакет для PostgreSQL, но он не управляет ни запуском, ни процессом инициализации. Так что полезно помнить как работать руками.&lt;/p&gt;&lt;a href="https://corpix.dev/2019/02/run-postgresql-by-hands.html?utm_source=nixos&amp;amp;utm_medium=Atom"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</content></entry></feed>

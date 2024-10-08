@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<rss version="2.0">
+ <channel>
+  <title>corpix/blog: Posts tagged 'docker'</title>
+  <description>corpix/blog: Posts tagged 'docker'</description>
+  <link>https://corpix.dev/tags/docker.html</link>
+  <lastBuildDate>Sun, 03 Feb 2019 20:48:16 UT</lastBuildDate>
+  <pubDate>Sun, 03 Feb 2019 20:48:16 UT</pubDate>
+  <ttl>1800</ttl>
+  <item>
+   <title>reproducible docker containers</title>
+   <link>https://corpix.dev/2019/02/reproducible-docker-containers.html?utm_source=docker&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2019-02-reproducible-docker-containers-html</guid>
+   <pubDate>Sun, 03 Feb 2019 20:48:16 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;Многие сегодня используют docker для доставки своих решений в продакшен. Обычно образы собираются с помощью т.н. &lt;code&gt;Dockerfile&lt;/code&gt;, который может иметь следующий вид:&lt;/p&gt;
+
+&lt;div class="brush: dockerfile"&gt;
+ &lt;div class="source"&gt;
+  &lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;golang:latest&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;as&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;builder&lt;/span&gt;
+&lt;span class="k"&gt;WORKDIR&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;/go/src&lt;/span&gt;
+&lt;span class="k"&gt;COPY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;.&lt;span class="w"&gt; &lt;/span&gt;.
+&lt;span class="k"&gt;RUN&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;go&lt;span class="w"&gt; &lt;/span&gt;build&lt;span class="w"&gt; &lt;/span&gt;-o&lt;span class="w"&gt; &lt;/span&gt;app
+&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;alpine:latest&lt;/span&gt;
+&lt;span class="k"&gt;COPY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;--from&lt;span class="o"&gt;=&lt;/span&gt;builder&lt;span class="w"&gt; &lt;/span&gt;/go/src/app&lt;span class="w"&gt; &lt;/span&gt;/bin/app
+&lt;span class="k"&gt;CMD&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;/bin/app
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;p&gt;Можно ли сказать что образ, полученный в результате сборки с указанным &lt;code&gt;Dockerfile&lt;/code&gt;, будет воспроизводимым?&lt;/p&gt;
+
+&lt;p&gt;Нет. Эта заметка объясняет:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;почему&lt;/li&gt;
+ &lt;li&gt;как писать &lt;code&gt;Dockerfile&lt;/code&gt; чтобы приблизиться к воспроизводимости&lt;/li&gt;
+ &lt;li&gt;чем заменить &lt;code&gt;Dockerfile&lt;/code&gt; чтобы сделать сборки воспроизводимыми&lt;/li&gt;&lt;/ul&gt;&lt;a href="https://corpix.dev/2019/02/reproducible-docker-containers.html?utm_source=docker&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item></channel></rss>

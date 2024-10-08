@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<rss version="2.0">
+ <channel>
+  <title>corpix/blog: Posts tagged 'nix'</title>
+  <description>corpix/blog: Posts tagged 'nix'</description>
+  <link>https://corpix.dev/tags/nix.html</link>
+  <lastBuildDate>Sun, 28 Aug 2022 21:00:00 UT</lastBuildDate>
+  <pubDate>Sun, 28 Aug 2022 21:00:00 UT</pubDate>
+  <ttl>1800</ttl>
+  <item>
+   <title>Terraforming NixOS hosts</title>
+   <link>https://corpix.dev/2022/08/terraforming-nixos-hosts.html?utm_source=nix&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2022-08-terraforming-nixos-hosts-html</guid>
+   <pubDate>Sun, 28 Aug 2022 21:00:00 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;I&amp;rsquo;ve made a provider to deploy Nixos hosts with Terraform.&lt;/p&gt;
+
+&lt;p&gt;Here is a list of features it support at this moment:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;configuration deployment&lt;/li&gt;
+ &lt;li&gt;secrets deployment&lt;/li&gt;
+ &lt;li&gt;SSH bastions&lt;/li&gt;
+ &lt;li&gt;provider, Nix, SSH settings overriding on per-host basis&lt;/li&gt;
+ &lt;li&gt;host addresses prioritization&lt;/li&gt;&lt;/ul&gt;&lt;a href="https://corpix.dev/2022/08/terraforming-nixos-hosts.html?utm_source=nix&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item>
+  <item>
+   <title>reproducible docker containers</title>
+   <link>https://corpix.dev/2019/02/reproducible-docker-containers.html?utm_source=nix&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2019-02-reproducible-docker-containers-html</guid>
+   <pubDate>Sun, 03 Feb 2019 20:48:16 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;Многие сегодня используют docker для доставки своих решений в продакшен. Обычно образы собираются с помощью т.н. &lt;code&gt;Dockerfile&lt;/code&gt;, который может иметь следующий вид:&lt;/p&gt;
+
+&lt;div class="brush: dockerfile"&gt;
+ &lt;div class="source"&gt;
+  &lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;golang:latest&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;as&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;builder&lt;/span&gt;
+&lt;span class="k"&gt;WORKDIR&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;/go/src&lt;/span&gt;
+&lt;span class="k"&gt;COPY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;.&lt;span class="w"&gt; &lt;/span&gt;.
+&lt;span class="k"&gt;RUN&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;go&lt;span class="w"&gt; &lt;/span&gt;build&lt;span class="w"&gt; &lt;/span&gt;-o&lt;span class="w"&gt; &lt;/span&gt;app
+&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;alpine:latest&lt;/span&gt;
+&lt;span class="k"&gt;COPY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;--from&lt;span class="o"&gt;=&lt;/span&gt;builder&lt;span class="w"&gt; &lt;/span&gt;/go/src/app&lt;span class="w"&gt; &lt;/span&gt;/bin/app
+&lt;span class="k"&gt;CMD&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;/bin/app
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;p&gt;Можно ли сказать что образ, полученный в результате сборки с указанным &lt;code&gt;Dockerfile&lt;/code&gt;, будет воспроизводимым?&lt;/p&gt;
+
+&lt;p&gt;Нет. Эта заметка объясняет:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;почему&lt;/li&gt;
+ &lt;li&gt;как писать &lt;code&gt;Dockerfile&lt;/code&gt; чтобы приблизиться к воспроизводимости&lt;/li&gt;
+ &lt;li&gt;чем заменить &lt;code&gt;Dockerfile&lt;/code&gt; чтобы сделать сборки воспроизводимыми&lt;/li&gt;&lt;/ul&gt;&lt;a href="https://corpix.dev/2019/02/reproducible-docker-containers.html?utm_source=nix&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item>
+  <item>
+   <title>emacs + go-mode + lsp + REPL</title>
+   <link>https://corpix.dev/2019/02/emacs-go-mode-lsp-repl.html?utm_source=nix&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2019-02-emacs-go-mode-lsp-repl-html</guid>
+   <pubDate>Sat, 02 Feb 2019 16:46:44 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;Некоторое время назад я начал переезжать с spacemacs обратно на самописную конфигурацию(мне так стабильнее и кастомайзить проще). Common LISP и scheme работают почти без настройки, а вот с golang пришлось поплясать.&lt;/p&gt;
+
+&lt;p&gt;Цель: настроить среду разработки, которая способна:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;к автокомплиту&lt;/li&gt;
+ &lt;li&gt;выводу документации&lt;/li&gt;
+ &lt;li&gt;go to definition&lt;/li&gt;&lt;/ul&gt;
+
+&lt;p&gt;Это минимум, необходимый мне для работы.&lt;/p&gt;
+
+&lt;p&gt;Скажу сразу:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;не всё заработало&lt;/li&gt;
+ &lt;li&gt;некоторые вещи тормозят&lt;/li&gt;
+ &lt;li&gt;некоторые работают странно&lt;/li&gt;&lt;/ul&gt;
+
+&lt;p&gt;Но жить можно, плюс ко всему - понятно что улучшать.&lt;/p&gt;&lt;a href="https://corpix.dev/2019/02/emacs-go-mode-lsp-repl.html?utm_source=nix&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item></channel></rss>

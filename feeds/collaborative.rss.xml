@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<rss version="2.0">
+ <channel>
+  <title>corpix/blog: Posts tagged 'collaborative'</title>
+  <description>corpix/blog: Posts tagged 'collaborative'</description>
+  <link>https://corpix.dev/tags/collaborative.html</link>
+  <lastBuildDate>Sun, 20 Feb 2022 21:00:00 UT</lastBuildDate>
+  <pubDate>Sun, 20 Feb 2022 21:00:00 UT</pubDate>
+  <ttl>1800</ttl>
+  <item>
+   <title>Collaborative editing with Emacs</title>
+   <link>https://corpix.dev/2022/02/collaborative-editing-with-emacs.html?utm_source=collaborative&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2022-02-collaborative-editing-with-emacs-html</guid>
+   <pubDate>Sun, 20 Feb 2022 21:00:00 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;This note is about using Emacs for collaborative editing with help of package called &lt;a href="https://code.librehq.com/qhong/crdt.el"&gt;crdt.el&lt;/a&gt;.&lt;/p&gt;&lt;a href="https://corpix.dev/2022/02/collaborative-editing-with-emacs.html?utm_source=collaborative&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item></channel></rss>

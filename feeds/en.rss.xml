@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<rss version="2.0">
+ <channel>
+  <title>corpix/blog: Posts tagged 'en'</title>
+  <description>corpix/blog: Posts tagged 'en'</description>
+  <link>https://corpix.dev/tags/en.html</link>
+  <lastBuildDate>Tue, 06 Feb 2024 09:00:00 UT</lastBuildDate>
+  <pubDate>Tue, 06 Feb 2024 09:00:00 UT</pubDate>
+  <ttl>1800</ttl>
+  <item>
+   <title>Flashing Tuya WT5 dimmer with openbeken</title>
+   <link>https://corpix.dev/2024/02/flashing-tuya-wt5-dimmer-with-openbeken.html?utm_source=en&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2024-02-flashing-tuya-wt5-dimmer-with-openbeken-html</guid>
+   <pubDate>Tue, 06 Feb 2024 09:00:00 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>&lt;a href="https://corpix.dev/2024/02/flashing-tuya-wt5-dimmer-with-openbeken.html?utm_source=en&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item>
+  <item>
+   <title>Terraforming NixOS hosts</title>
+   <link>https://corpix.dev/2022/08/terraforming-nixos-hosts.html?utm_source=en&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2022-08-terraforming-nixos-hosts-html</guid>
+   <pubDate>Sun, 28 Aug 2022 21:00:00 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;I&amp;rsquo;ve made a provider to deploy Nixos hosts with Terraform.&lt;/p&gt;
+
+&lt;p&gt;Here is a list of features it support at this moment:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;configuration deployment&lt;/li&gt;
+ &lt;li&gt;secrets deployment&lt;/li&gt;
+ &lt;li&gt;SSH bastions&lt;/li&gt;
+ &lt;li&gt;provider, Nix, SSH settings overriding on per-host basis&lt;/li&gt;
+ &lt;li&gt;host addresses prioritization&lt;/li&gt;&lt;/ul&gt;&lt;a href="https://corpix.dev/2022/08/terraforming-nixos-hosts.html?utm_source=en&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item>
+  <item>
+   <title>Collaborative editing with Emacs</title>
+   <link>https://corpix.dev/2022/02/collaborative-editing-with-emacs.html?utm_source=en&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2022-02-collaborative-editing-with-emacs-html</guid>
+   <pubDate>Sun, 20 Feb 2022 21:00:00 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;This note is about using Emacs for collaborative editing with help of package called &lt;a href="https://code.librehq.com/qhong/crdt.el"&gt;crdt.el&lt;/a&gt;.&lt;/p&gt;&lt;a href="https://corpix.dev/2022/02/collaborative-editing-with-emacs.html?utm_source=en&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item>
+  <item>
+   <title>Using Certbot with Knot DNS (knsupdate)</title>
+   <link>https://corpix.dev/2022/02/using-certbot-with-knot-dns-knsupdate.html?utm_source=en&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2022-02-using-certbot-with-knot-dns-knsupdate-html</guid>
+   <pubDate>Thu, 17 Feb 2022 21:00:00 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;This is a note about the integration of the Certbot with Let&amp;rsquo;s encrypt DNS&amp;ndash;01 authentication mechanism. Will not use any cloud services (fuck cloud), just self-hosted DNS instances, like good old times. I&amp;rsquo;ll show how to configure Knot DNS to accept dynamic DNS updates from &lt;code&gt;knsupdate&lt;/code&gt; and how to create a rudimentary hook for Certbot which will use &lt;code&gt;knsupdate&lt;/code&gt; to set &lt;code&gt;TXT&lt;/code&gt; records with &lt;code&gt;_acme-challenge&lt;/code&gt;.&lt;/p&gt;&lt;a href="https://corpix.dev/2022/02/using-certbot-with-knot-dns-knsupdate.html?utm_source=en&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item></channel></rss>

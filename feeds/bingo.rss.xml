@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<rss version="2.0">
+ <channel>
+  <title>corpix/blog: Posts tagged 'bingo'</title>
+  <description>corpix/blog: Posts tagged 'bingo'</description>
+  <link>https://corpix.dev/tags/bingo.html</link>
+  <lastBuildDate>Sat, 02 Feb 2019 16:46:44 UT</lastBuildDate>
+  <pubDate>Sat, 02 Feb 2019 16:46:44 UT</pubDate>
+  <ttl>1800</ttl>
+  <item>
+   <title>emacs + go-mode + lsp + REPL</title>
+   <link>https://corpix.dev/2019/02/emacs-go-mode-lsp-repl.html?utm_source=bingo&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2019-02-emacs-go-mode-lsp-repl-html</guid>
+   <pubDate>Sat, 02 Feb 2019 16:46:44 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;Некоторое время назад я начал переезжать с spacemacs обратно на самописную конфигурацию(мне так стабильнее и кастомайзить проще). Common LISP и scheme работают почти без настройки, а вот с golang пришлось поплясать.&lt;/p&gt;
+
+&lt;p&gt;Цель: настроить среду разработки, которая способна:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;к автокомплиту&lt;/li&gt;
+ &lt;li&gt;выводу документации&lt;/li&gt;
+ &lt;li&gt;go to definition&lt;/li&gt;&lt;/ul&gt;
+
+&lt;p&gt;Это минимум, необходимый мне для работы.&lt;/p&gt;
+
+&lt;p&gt;Скажу сразу:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;не всё заработало&lt;/li&gt;
+ &lt;li&gt;некоторые вещи тормозят&lt;/li&gt;
+ &lt;li&gt;некоторые работают странно&lt;/li&gt;&lt;/ul&gt;
+
+&lt;p&gt;Но жить можно, плюс ко всему - понятно что улучшать.&lt;/p&gt;&lt;a href="https://corpix.dev/2019/02/emacs-go-mode-lsp-repl.html?utm_source=bingo&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item></channel></rss>

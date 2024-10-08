@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<rss version="2.0">
+ <channel>
+  <title>corpix/blog: Posts tagged 'ru'</title>
+  <description>corpix/blog: Posts tagged 'ru'</description>
+  <link>https://corpix.dev/tags/ru.html</link>
+  <lastBuildDate>Sun, 31 Mar 2019 00:00:00 UT</lastBuildDate>
+  <pubDate>Sun, 31 Mar 2019 00:00:00 UT</pubDate>
+  <ttl>1800</ttl>
+  <item>
+   <title>choosing the best adhesive for Go code #1</title>
+   <link>https://corpix.dev/2019/03/choosing-the-best-adhesive-for-go-code-1.html?utm_source=ru&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2019-03-choosing-the-best-adhesive-for-go-code-1-html</guid>
+   <pubDate>Sun, 31 Mar 2019 00:00:00 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;Одна из сторон языка Go, за которую его многие любят, это простота. Она же является и его слабостью, выражающейся в увеличении количества кода вместе с повышением уровня абстракции.&lt;/p&gt;
+
+&lt;p&gt;Я хочу писать более абстрактный код там где это требуется, снимая ограничения системы типов если это необходимо. Для этого в &lt;a href="/tags/series-go-adhesive.html"&gt;серии&lt;/a&gt; статей буду искать такую реализацию скриптового языка, которую можно подружить с Go рантаймом и я точно знаю что хочу нечто lisp-подобное.&lt;/p&gt;
+
+&lt;p&gt;Зачем такой язык нужен:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;конфигурация: на скриптовом языке описывается конфигурация приложения&lt;/li&gt;
+ &lt;li&gt;инициализация: из кода на интерпретируемом языке происходит инициализация компонентов, написанных на языке компилируемом&lt;/li&gt;
+ &lt;li&gt;расширение: виртуальной машине интерпретируемого языка в некоторые моменты передаётся управление с целью увеличения гибкости&lt;/li&gt;&lt;/ul&gt;&lt;a href="https://corpix.dev/2019/03/choosing-the-best-adhesive-for-go-code-1.html?utm_source=ru&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item>
+  <item>
+   <title>run PostgreSQL by hands</title>
+   <link>https://corpix.dev/2019/02/run-postgresql-by-hands.html?utm_source=ru&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2019-02-run-postgresql-by-hands-html</guid>
+   <pubDate>Mon, 25 Feb 2019 18:47:15 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;Раз в год (или около того) мне нужно запустить PostgreSQL с целью поразрабатывать что-нибудь. За то время что я его не использую знания выветриваются, так что на будущее я делаю эту заметку, в основном для себя.&lt;/p&gt;
+
+&lt;p&gt;Запускать PostgreSQL можно разными способами, вот два самых распространенных:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;использовать docker&lt;/li&gt;
+ &lt;li&gt;поставить пакет&lt;/li&gt;&lt;/ul&gt;
+
+&lt;p&gt;Оба способа немного магические. Контейнеры стараются быть удобными и покрывать как можно больше функциональности, что выливается в адские entrypoint&amp;rsquo;ы на bash с обратным удобству эффектом. Пакеты в распространенных дистрибутивах тоже содержат не мало магии, ведь они обычно (как минимум) инициализируют директорию с данными СУБД и запускают её сервис.&lt;/p&gt;
+
+&lt;p&gt;В nixos тоже есть пакет для PostgreSQL, но он не управляет ни запуском, ни процессом инициализации. Так что полезно помнить как работать руками.&lt;/p&gt;&lt;a href="https://corpix.dev/2019/02/run-postgresql-by-hands.html?utm_source=ru&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item>
+  <item>
+   <title>reproducible docker containers</title>
+   <link>https://corpix.dev/2019/02/reproducible-docker-containers.html?utm_source=ru&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2019-02-reproducible-docker-containers-html</guid>
+   <pubDate>Sun, 03 Feb 2019 20:48:16 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;Многие сегодня используют docker для доставки своих решений в продакшен. Обычно образы собираются с помощью т.н. &lt;code&gt;Dockerfile&lt;/code&gt;, который может иметь следующий вид:&lt;/p&gt;
+
+&lt;div class="brush: dockerfile"&gt;
+ &lt;div class="source"&gt;
+  &lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;golang:latest&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;as&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;builder&lt;/span&gt;
+&lt;span class="k"&gt;WORKDIR&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;/go/src&lt;/span&gt;
+&lt;span class="k"&gt;COPY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;.&lt;span class="w"&gt; &lt;/span&gt;.
+&lt;span class="k"&gt;RUN&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;go&lt;span class="w"&gt; &lt;/span&gt;build&lt;span class="w"&gt; &lt;/span&gt;-o&lt;span class="w"&gt; &lt;/span&gt;app
+&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;alpine:latest&lt;/span&gt;
+&lt;span class="k"&gt;COPY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;--from&lt;span class="o"&gt;=&lt;/span&gt;builder&lt;span class="w"&gt; &lt;/span&gt;/go/src/app&lt;span class="w"&gt; &lt;/span&gt;/bin/app
+&lt;span class="k"&gt;CMD&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;/bin/app
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;p&gt;Можно ли сказать что образ, полученный в результате сборки с указанным &lt;code&gt;Dockerfile&lt;/code&gt;, будет воспроизводимым?&lt;/p&gt;
+
+&lt;p&gt;Нет. Эта заметка объясняет:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;почему&lt;/li&gt;
+ &lt;li&gt;как писать &lt;code&gt;Dockerfile&lt;/code&gt; чтобы приблизиться к воспроизводимости&lt;/li&gt;
+ &lt;li&gt;чем заменить &lt;code&gt;Dockerfile&lt;/code&gt; чтобы сделать сборки воспроизводимыми&lt;/li&gt;&lt;/ul&gt;&lt;a href="https://corpix.dev/2019/02/reproducible-docker-containers.html?utm_source=ru&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item>
+  <item>
+   <title>emacs + go-mode + lsp + REPL</title>
+   <link>https://corpix.dev/2019/02/emacs-go-mode-lsp-repl.html?utm_source=ru&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2019-02-emacs-go-mode-lsp-repl-html</guid>
+   <pubDate>Sat, 02 Feb 2019 16:46:44 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;Некоторое время назад я начал переезжать с spacemacs обратно на самописную конфигурацию(мне так стабильнее и кастомайзить проще). Common LISP и scheme работают почти без настройки, а вот с golang пришлось поплясать.&lt;/p&gt;
+
+&lt;p&gt;Цель: настроить среду разработки, которая способна:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;к автокомплиту&lt;/li&gt;
+ &lt;li&gt;выводу документации&lt;/li&gt;
+ &lt;li&gt;go to definition&lt;/li&gt;&lt;/ul&gt;
+
+&lt;p&gt;Это минимум, необходимый мне для работы.&lt;/p&gt;
+
+&lt;p&gt;Скажу сразу:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;не всё заработало&lt;/li&gt;
+ &lt;li&gt;некоторые вещи тормозят&lt;/li&gt;
+ &lt;li&gt;некоторые работают странно&lt;/li&gt;&lt;/ul&gt;
+
+&lt;p&gt;Но жить можно, плюс ко всему - понятно что улучшать.&lt;/p&gt;&lt;a href="https://corpix.dev/2019/02/emacs-go-mode-lsp-repl.html?utm_source=ru&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item></channel></rss>

@@ -1,0 +1,1255 @@
+<!--
+              -os//`               -os//`               -os//`               -os//`               -os//`               -os//`
+            /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-             /dMyMNs-
+         `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.             `omNMMh.
+       -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+             -syMmdm+
+     :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`             :s/  :h`
+   :y/     oy           :y/     oy           :y/     oy           :y/     oy           :y/     oy           :y/     oy
+ `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:          `y+    -oo:
+ h-  -os:             h-  -os:             h-  -os:             h-  -os:             h-  -os:             h-  -os:
+-y.os/`              -y.os/`              -y.os/`              -y.os/`              -y.os/`              -y.os/`
+`s/`                 `s/`                 `s/`                 `s/`                 `s/`                 `s/`
+
+                good place for libertarian propaganda, huh? :)
+                «IT WAS SO COLD THIS MORNING. I SAW A SOCIALIST WITH HIS HANDS IN HIS OWN POCKETS»
+
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>choosing the best adhesive for Go code #1</title>
+
+    <meta name="description"           content="Одна из сторон языка Go, за которую его многие любят, это простота. Она же является и его слабостью, выражающейся в увеличении количества кода вместе с повышением уровня абстракции.  Я хочу писать более абстрактный код там где это требуется, снимая ограни...">
+    <meta name="author"                content="Dmitry Moskowski">
+    <meta name="keywords"              content="ru, go, cgo, lisp, scheme, series:go-adhesive">
+    <meta name="viewport"              content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <link rel="shortcut icon" href="/img/favicon.png">
+    <link rel="stylesheet"    type="text/css" href="/css/normalize.css">
+    <link rel="stylesheet"    type="text/css" href="/css/theme.css">
+
+    <link rel="alternate" type="application/atom+xml" href="/feeds/all.atom.xml" title="Atom Feed">
+    <link rel="alternate" type="application/rss+xml"  href="/feeds/all.rss.xml"  title="RSS Feed">
+
+    <link rel="canonical" href="https://corpix.dev/2019/03/choosing-the-best-adhesive-for-go-code-1.html">
+
+    <link rel="next" href="/2019/02/run-postgresql-by-hands.html">
+    <link rel="prev" href="/2022/02/using-certbot-with-knot-dns-knsupdate.html">
+
+    <script>
+      // corpix: "никакого джаваскрипта на страницах нет и не будет"
+      // это последний, бросаю, с завтрашнего дня больше никакого джаваскрипта
+      // честно
+      document.documentElement.setAttribute('class', (function (d) {
+          var month = '' + (d.getMonth() + 1),
+              day   = '' + d.getDate(),
+              year  = d.getFullYear();
+          if (month.length < 2) month = '0' + month;
+          if (day.length < 2)   day   = '0' + day;
+          return 'yyyyddmm'+year+month+day+' ddmm'+month+day;
+      })(new Date()));
+    </script>
+  </head>
+  <body>
+    <div class="root">
+      <div class="container">
+        <div class="header">
+          <div class="logo">
+            <a href="/">
+              <img src="/img/logo.svg" title="OH MY GOD HE GOTS A KNIFE"/>
+            </a>
+          </div>
+          <nav class="navigation">
+            <a href="/">Home</a>
+            <a href="/feeds/all.rss.xml">RSS</a>
+            <a href="/projects.html">Projects</a>
+            <a href="/study.html">Study</a>
+            <a href="/about.html">About</a>
+          </nav>
+        </div>
+        <div class="content">
+          <!-- the one good licence for opensource is unlicense -->
+          <article>
+            <article>
+  <header>
+    <h1>choosing the best adhesive for Go code #1</h1>
+  </header>
+
+<p>Одна из сторон языка Go, за которую его многие любят, это простота. Она же является и его слабостью, выражающейся в увеличении количества кода вместе с повышением уровня абстракции.</p>
+
+<p>Я хочу писать более абстрактный код там где это требуется, снимая ограничения системы типов если это необходимо. Для этого в <a href="/tags/series-go-adhesive.html">серии</a> статей буду искать такую реализацию скриптового языка, которую можно подружить с Go рантаймом и я точно знаю что хочу нечто lisp-подобное.</p>
+
+<p>Зачем такой язык нужен:</p>
+
+<ul>
+ <li>конфигурация: на скриптовом языке описывается конфигурация приложения</li>
+ <li>инициализация: из кода на интерпретируемом языке происходит инициализация компонентов, написанных на языке компилируемом</li>
+ <li>расширение: виртуальной машине интерпретируемого языка в некоторые моменты передаётся управление с целью увеличения гибкости</li></ul>
+<!-- more-->
+
+<p><strong>Конфигурация</strong>. Такие языки как JSON, YAML, TOML весьма популярны для описания конфигураций программ, но это не всегда удобно и у каждого из них есть свои минусы. В то же время использование языка общего назначения для описания конфигурации может привести к тому что обычно называют &ldquo;программирование в конфигах&rdquo;, когда в конфигурационном файле описывается целая программа, сложная для восприятия и появляется необходимость в методах ограничения &ldquo;мощи&rdquo; языка. В scheme есть возможность ограничить доступные возможности, что серьёзно выделяет его на фоне других ЯП общего назначения.</p>
+
+<p><strong>Инициализация</strong>. При разработке на Go часто получается так что высокая производительность нужна внутри компонентов программ, которые инициализируются при запуске, а дальше работают самостоятельно. В этом месте можно использовать интерпретируемый язык, проводя инициализацию компонентов с его помощью.</p>
+
+<p><strong>Расширение</strong>. В тот момент когда нужно предоставить больше гибкости, например реализовав внутри HTTP API ограниченный язык выборки над данными, часто нет возможности использовать язык общего назначения потому что это 1) не безопасно и 2) не удобно/не выразительно для конечного пользователя. Как и в случае с описанием конфигурации, scheme позволяет сильно ограничивать доступное подмножество языка и описывать очень гибкие и простые DSL с помощью макросов.</p>
+
+<p>В этой статье будем пробовать дружить GNU Guile с Go, а в следующих статьях рассмотрим следующие темы(список может меняться по мере продвижения вперёд):</p>
+
+<ul>
+ <li>lua + fennel в Go</li>
+ <li>встраиваемые scheme/lisp VM для Go</li>
+ <li>&hellip;?</li></ul>
+
+<h2 id="d87bc69b"><a href="#d87bc69b" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>Guile</h2>
+
+<p>Это не самый очевидный выбор, но он недавно привлёк моё внимание тем что используется внутри <a href="https://www.gnu.org/software/guix/">guix</a> и раз уж его появление было вызвано <a href="https://www.gnu.org/software/guile/manual/guile.html#Guile-and-the-GNU-Project-1">решением схожих задач</a>, а я так и не распробовал cgo&hellip; все признаки указывают на то что будет интересно, не так ли?</p>
+
+<blockquote>
+ <p>Конечно интероп и скорость исполнения будут не так хороши в виду того что коммуницировать с виртуальной машиной Guile мы будем через cgo.</p></blockquote>
+
+<h4 id="3de09fc5"><a href="#3de09fc5" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>repl</h4>
+
+<p>В официальной документации <a href="https://www.gnu.org/software/guile/manual/guile.html#Linking-Guile-into-Programs-1">есть примеры</a> линковки c C кодом и запуска REPL, адаптируем его для Go:</p>
+
+<blockquote>
+ <p>Следующие далее исходники находятся в <a href="/repositories/go-adhesive/guile">репозитории</a>. Воспроизвести результат можно выполнив <code>make run</code> в директории <code>repl</code>.</p></blockquote>
+
+<div class="brush: go">
+ <div class="source">
+  <pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="c1">// #cgo CFLAGS: -g -Wall</span>
+<span class="c1">// #cgo pkg-config: guile-2.2</span>
+<span class="cm">/*</span>
+<span class="cm">#include &lt;libguile.h&gt;</span>
+
+<span class="cm">static void ready(void *data, int argc, char **argv)</span>
+<span class="cm">{</span>
+<span class="cm">  scm_shell(argc, argv);</span>
+<span class="cm">}</span>
+
+<span class="cm">void run() {</span>
+<span class="cm">  scm_boot_guile(0, NULL, ready, 0);</span>
+<span class="cm">}</span>
+<span class="cm">*/</span>
+<span class="kn">import</span><span class="w"> </span><span class="s">"C"</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">C</span><span class="p">.</span><span class="nx">run</span><span class="p">()</span>
+<span class="p">}</span>
+</pre></div>
+
+</div>
+
+<p>Сохраним код в файл <code>main.go</code>. Чтобы его собрать потребуется <code>libguile</code> версии 2.2(текущая стабильная на момент написания) и <code>pkg-config</code>. Где взять всё это добро в вашем дистрибутиве думайте сами, ну а я напишу <code>shell.nix</code>:</p>
+
+<blockquote>
+ <p>Кстати, <code>nix</code> можно использовать внутри docker контейнера: <code>docker run --rm -it nixos/nix /bin/sh</code></p></blockquote>
+
+<div class="brush: nix">
+ <div class="source">
+  <pre><span></span><span class="k">with</span> <span class="nb">import</span> <span class="l">&lt;nixpkgs&gt;</span> <span class="p">{};</span>
+stdenv<span class="o">.</span>mkDerivation <span class="p">{</span>
+  <span class="ss">name</span> <span class="o">=</span> <span class="s2">"playground-shell"</span><span class="p">;</span>
+  <span class="ss">buildInputs</span> <span class="o">=</span> <span class="p">[</span>
+    gnumake
+    guile
+    go
+    pkgconfig
+    clang_7
+    valgrind
+  <span class="p">];</span>
+  <span class="ss">shellHook</span> <span class="o">=</span> <span class="s s-Multiline">&#39;&#39;</span>
+<span class="s s-Multiline">    unset GOPATH</span>
+<span class="s s-Multiline">    export CFLAGS="$CFLAGS $(pkg-config --cflags --libs guile-2.2)"</span>
+<span class="s s-Multiline">  &#39;&#39;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+</div>
+
+<p>Собираем:</p>
+
+<blockquote>
+ <p>Можно добавить <code>-x</code> флаг чтобы увидеть выполняемые сборщиком команды.</p></blockquote>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>main<span class="w"> </span>main.go
+</pre></div>
+
+</div>
+
+<p>REPL запускается:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>./main
+<span class="go">GNU Guile 2.2.3</span>
+<span class="go">Copyright (C) 1995-2017 Free Software Foundation, Inc.</span>
+
+<span class="go">Guile comes with ABSOLUTELY NO WARRANTY; for details type `,show w&#39;.</span>
+<span class="go">This program is free software, and you are welcome to redistribute it</span>
+<span class="go">under certain conditions; type `,show c&#39; for details.</span>
+
+<span class="go">Enter `,help&#39; for help.</span>
+<span class="go">scheme@(guile-user)&gt; (+ 1 2)</span>
+<span class="gp">$</span><span class="nv">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span>
+<span class="go">scheme@(guile-user)&gt; (exit)</span>
+</pre></div>
+
+</div>
+
+<p>Посмотрим на размер и линковку:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>du<span class="w"> </span>-hs<span class="w"> </span>main
+<span class="go">1.1M	main</span>
+<span class="gp">$ </span>ldd<span class="w"> </span>main
+<span class="go">	linux-vdso.so.1 (0x00007ffe31985000)</span>
+<span class="go">	libguile-2.2.so.1 =&gt; /nix/store/...-guile-2.2.3/lib/libguile-2.2.so.1 (0x00007f5ead4d7000)</span>
+<span class="go">	libgc.so.1 =&gt; /nix/store/...-boehm-gc-8.0.2/lib/libgc.so.1 (0x00007f5ead467000)</span>
+<span class="go">	libpthread.so.0 =&gt; /nix/store/...-glibc-2.27/lib/libpthread.so.0 (0x00007f5ead446000)</span>
+<span class="go">	libc.so.6 =&gt; /nix/store/...-glibc-2.27/lib/libc.so.6 (0x00007f5ead290000)</span>
+<span class="go">	libffi.so.6 =&gt; /nix/store/...-libffi-3.2.1/lib/../lib64/libffi.so.6 (0x00007f5ead281000)</span>
+<span class="go">	libunistring.so.2 =&gt; /nix/store/...-libunistring-0.9.10/lib/libunistring.so.2 (0x00007f5ead0fc000)</span>
+<span class="go">	libgcc_s.so.1 =&gt; /nix/store/...-glibc-2.27/lib/libgcc_s.so.1 (0x00007f5eacee6000)</span>
+<span class="go">	libgmp.so.10 =&gt; /nix/store/...-gmp-6.1.2/lib/libgmp.so.10 (0x00007f5eace50000)</span>
+<span class="go">	libltdl.so.7 =&gt; /nix/store/...-libtool-2.4.6-lib/lib/libltdl.so.7 (0x00007f5eace43000)</span>
+<span class="go">	libcrypt.so.1 =&gt; /nix/store/...-glibc-2.27/lib/libcrypt.so.1 (0x00007f5eace09000)</span>
+<span class="go">	libm.so.6 =&gt; /nix/store/...-glibc-2.27/lib/libm.so.6 (0x00007f5eacc71000)</span>
+<span class="go">	/nix/store/...-glibc-2.27/lib/ld-linux-x86-64.so.2 =&gt; /nix/store/...-glibc-2.27/lib64/ld-linux-x86-64.so.2 (0x00007f5ead60e000)</span>
+<span class="go">	libdl.so.2 =&gt; /nix/store/...-glibc-2.27/lib/libdl.so.2 (0x00007f5eacc6c000)</span>
+</pre></div>
+
+</div>
+
+<p>Бинарь не слижком большой, линковка зависимостей <code>libguile</code> динамическая.</p>
+
+<p>В этом примере &ldquo;точка входа&rdquo; в программу была через Go рантайм, после чего управление предавалось в C код, в следующем примере будет наоборот.</p>
+
+<h4 id="c795dc93"><a href="#c795dc93" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>shared</h4>
+
+<p>Попробуем сделать возможным вызов Go функций из REPL. Для этого будем собирать код с флагом <code>-buildmode=c-shared</code>, значит функции, которые будут использоваться в REPL, нужно экспортировать:</p>
+
+<blockquote>
+ <p>Следующие далее исходники находятся в <a href="/repositories/go-adhesive/guile">репозитории</a>. Воспроизвести результат можно выполнив <code>make run</code> в директории <code>shared</code>.</p></blockquote>
+
+<div class="brush: go">
+ <div class="source">
+  <pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="s">"C"</span>
+
+<span class="c1">//export Plus</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">Plus</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span><span class="w"> </span><span class="nx">b</span><span class="w"> </span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">a</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">b</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span>
+</pre></div>
+
+</div>
+
+<blockquote>
+ <p>Пробела между <code>//</code> и <code>export</code> быть не должно. Если поставить пробел то функция не будет экспортирована. Препроцессор C передаёт &ldquo;привет&rdquo;.</p></blockquote>
+
+<p>Теперь создадим из этого кода shared object, который далее будет загружен внутрь Guile:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>main.so<span class="w"> </span>-buildmode<span class="o">=</span>c-shared<span class="w"> </span>main.go
+</pre></div>
+
+</div>
+
+<p>На этом этапе будет создано 2 файла:</p>
+
+<ul>
+ <li><code>main.so</code>, содержащий Go рантайм и наш код</li>
+ <li><code>main.h</code>, содержащий декларации типов Go для C</li></ul>
+
+<p>Последний я здесь даже приведу, он есть в индексе моего репозитория:</p>
+
+<div class="brush: go">
+ <div class="source">
+  <pre><span></span><span class="cm">/* Code generated by cmd/cgo; DO NOT EDIT. */</span>
+
+<span class="cm">/* package command-line-arguments */</span>
+
+
+<span class="err">#</span><span class="nx">line</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="s">"cgo-builtin-prolog"</span>
+
+<span class="err">#</span><span class="nx">include</span><span class="w"> </span><span class="p">&lt;</span><span class="nx">stddef</span><span class="p">.</span><span class="nx">h</span><span class="p">&gt;</span><span class="w"> </span><span class="cm">/* for ptrdiff_t below */</span>
+
+<span class="err">#</span><span class="nx">ifndef</span><span class="w"> </span><span class="nx">GO_CGO_EXPORT_PROLOGUE_H</span>
+<span class="err">#</span><span class="nx">define</span><span class="w"> </span><span class="nx">GO_CGO_EXPORT_PROLOGUE_H</span>
+
+<span class="nx">typedef</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">char</span><span class="w"> </span><span class="o">*</span><span class="nx">p</span><span class="p">;</span><span class="w"> </span><span class="nx">ptrdiff_t</span><span class="w"> </span><span class="nx">n</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="nx">_GoString_</span><span class="p">;</span>
+
+<span class="err">#</span><span class="nx">endif</span>
+
+<span class="cm">/* Start of preamble from import "C" comments.  */</span>
+
+
+
+
+<span class="cm">/* End of preamble from import "C" comments.  */</span>
+
+
+<span class="cm">/* Start of boilerplate cgo prologue.  */</span>
+<span class="err">#</span><span class="nx">line</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="s">"cgo-gcc-export-header-prolog"</span>
+
+<span class="err">#</span><span class="nx">ifndef</span><span class="w"> </span><span class="nx">GO_CGO_PROLOGUE_H</span>
+<span class="err">#</span><span class="nx">define</span><span class="w"> </span><span class="nx">GO_CGO_PROLOGUE_H</span>
+
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">signed</span><span class="w"> </span><span class="nx">char</span><span class="w"> </span><span class="nx">GoInt8</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">unsigned</span><span class="w"> </span><span class="nx">char</span><span class="w"> </span><span class="nx">GoUint8</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">short</span><span class="w"> </span><span class="nx">GoInt16</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">unsigned</span><span class="w"> </span><span class="nx">short</span><span class="w"> </span><span class="nx">GoUint16</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nx">GoInt32</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nx">GoUint32</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">long</span><span class="w"> </span><span class="nx">long</span><span class="w"> </span><span class="nx">GoInt64</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">unsigned</span><span class="w"> </span><span class="nx">long</span><span class="w"> </span><span class="nx">long</span><span class="w"> </span><span class="nx">GoUint64</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">GoInt64</span><span class="w"> </span><span class="nx">GoInt</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">GoUint64</span><span class="w"> </span><span class="nx">GoUint</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">__SIZE_TYPE__</span><span class="w"> </span><span class="nx">GoUintptr</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="nx">GoFloat32</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">double</span><span class="w"> </span><span class="nx">GoFloat64</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="nx">_Complex</span><span class="w"> </span><span class="nx">GoComplex64</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">double</span><span class="w"> </span><span class="nx">_Complex</span><span class="w"> </span><span class="nx">GoComplex128</span><span class="p">;</span>
+
+<span class="cm">/*</span>
+<span class="cm">  static assertion to make sure the file is being used on architecture</span>
+<span class="cm">  at least with matching size of GoInt.</span>
+<span class="cm">*/</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">char</span><span class="w"> </span><span class="nx">_check_for_64_bit_pointer_matching_GoInt</span><span class="p">[</span><span class="nx">sizeof</span><span class="p">(</span><span class="nx">void</span><span class="o">*</span><span class="p">)</span><span class="o">==</span><span class="mi">64</span><span class="o">/</span><span class="mi">8</span><span class="w"> </span><span class="err">?</span><span class="w"> </span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">];</span>
+
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">_GoString_</span><span class="w"> </span><span class="nx">GoString</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">void</span><span class="w"> </span><span class="o">*</span><span class="nx">GoMap</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="nx">void</span><span class="w"> </span><span class="o">*</span><span class="nx">GoChan</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">void</span><span class="w"> </span><span class="o">*</span><span class="nx">t</span><span class="p">;</span><span class="w"> </span><span class="nx">void</span><span class="w"> </span><span class="o">*</span><span class="nx">v</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="nx">GoInterface</span><span class="p">;</span>
+<span class="nx">typedef</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">void</span><span class="w"> </span><span class="o">*</span><span class="nx">data</span><span class="p">;</span><span class="w"> </span><span class="nx">GoInt</span><span class="w"> </span><span class="nx">len</span><span class="p">;</span><span class="w"> </span><span class="nx">GoInt</span><span class="w"> </span><span class="nx">cap</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="nx">GoSlice</span><span class="p">;</span>
+
+<span class="err">#</span><span class="nx">endif</span>
+
+<span class="cm">/* End of boilerplate cgo prologue.  */</span>
+
+<span class="err">#</span><span class="nx">ifdef</span><span class="w"> </span><span class="nx">__cplusplus</span>
+<span class="nx">extern</span><span class="w"> </span><span class="s">"C"</span><span class="w"> </span><span class="p">{</span>
+<span class="err">#</span><span class="nx">endif</span>
+
+
+<span class="nx">extern</span><span class="w"> </span><span class="nx">GoInt</span><span class="w"> </span><span class="nx">Plus</span><span class="p">(</span><span class="nx">GoInt</span><span class="w"> </span><span class="nx">p0</span><span class="p">,</span><span class="w"> </span><span class="nx">GoInt</span><span class="w"> </span><span class="nx">p1</span><span class="p">);</span>
+
+<span class="err">#</span><span class="nx">ifdef</span><span class="w"> </span><span class="nx">__cplusplus</span>
+<span class="p">}</span>
+<span class="err">#</span><span class="nx">endif</span>
+</pre></div>
+
+</div>
+
+<p>Теперь посмотрим на символы из <code>main.so</code> с помощью <a href="https://linux.die.net/man/1/nm">nm</a>:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>go<span class="w"> </span>tool<span class="w"> </span>nm<span class="w"> </span>main.so<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-F<span class="w"> </span><span class="s1">&#39; T &#39;</span>
+<span class="go">   92130 T Plus</span>
+<span class="go">   923f0 T _cgo_get_context_function</span>
+<span class="go">   91400 T _cgo_panic</span>
+<span class="go">   ...</span>
+</pre></div>
+
+</div>
+
+<blockquote>
+ <p>&ldquo;T&rdquo; - The symbol is in an uninitialized data section for small objects.</p></blockquote>
+
+<p>Хорошо видно что там присутствует функция <code>Plus</code> и я не накосячил с <code>//export</code> в Go коде. Теперь нужно создать <code>main.c</code> и написать там:</p>
+
+<div class="brush: c">
+ <div class="source">
+  <pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;libguile.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"main.h"</span>
+
+<span class="k">static</span><span class="w"> </span><span class="n">SCM</span><span class="w"> </span><span class="nf">plus</span><span class="w"> </span><span class="p">(</span><span class="n">SCM</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">SCM</span><span class="w"> </span><span class="n">b</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">scm_from_int</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="n">Plus</span><span class="p">(</span><span class="n">scm_to_int</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+<span class="w">                                 </span><span class="n">scm_to_int</span><span class="p">(</span><span class="n">b</span><span class="p">)));</span>
+<span class="p">}</span>
+
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">ready</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">scm_c_define_gsubr</span><span class="p">(</span><span class="s">"plus"</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">plus</span><span class="p">);</span>
+<span class="w">  </span><span class="n">scm_shell</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">scm_boot_guile</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">,</span><span class="w"> </span><span class="n">ready</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+</div>
+
+<p>Если сделать <code>diff</code> с предыдущим примером "<a href="#95f83c2c">repl</a>", где похожий C код был внутри <code>main.go</code>, то:</p>
+
+<div class="brush: diff">
+ <div class="source">
+  <pre><span></span><span class="w"> </span>#include &lt;libguile.h&gt;
+<span class="gi">+#include "main.h"</span>
+<span class="gi">+</span>
+<span class="gi">+static SCM plus (SCM a, SCM b)</span>
+<span class="gi">+{</span>
+<span class="gi">+  scm_from_int((int) Plus(scm_to_int(a),</span>
+<span class="gi">+                          scm_to_int(b)));</span>
+<span class="gi">+}</span>
+
+<span class="w"> </span>static void ready(void *data, int argc, char **argv)
+<span class="w"> </span>{
+<span class="gi">+  scm_c_define_gsubr("plus", 2, 0, 0, plus);</span>
+<span class="w"> </span>  scm_shell(argc, argv);
+<span class="w"> </span>}
+
+<span class="gd">-void run() {</span>
+<span class="gd">-  scm_boot_guile(0, NULL, ready, 0);</span>
+<span class="gi">+int main(int argc, char **argv)</span>
+<span class="gi">+{</span>
+<span class="gi">+  scm_boot_guile(argc, argv, ready, 0);</span>
+<span class="gi">+  return 0;</span>
+<span class="w"> </span>}
+</pre></div>
+
+</div>
+
+<p>Объясню что поменялось:</p>
+
+<ul>
+ <li><code>run</code> заменил <code>main</code>, т.е. теперь точка входа не в Go, а в C</li>
+ <li>начали принимать command-line аргументы и пробрасывать их <code>scm_boot_guile</code>, инициализирующей Guile</li>
+ <li>добавили сишную обертку <code>plus</code> для гошной функции <code>Plus</code>, которая конвертирует типы</li>
+ <li>в <code>ready</code> добавили вызов <code>scm_c_define_gsubr</code> чтобы функция-обертка <code>plus</code> стала доступна внутри REPL</li>
+ <li>ну и конечно же загрузили сгенерированный cgo <code>main.h</code>, без которого ничего не будет работать</li></ul>
+
+<blockquote>
+ <p>Функции <code>scm_*</code> неплохо описаны в <a href="https://www.gnu.org/software/guile/manual/html_node/Initialization.html">guile reference</a>.</p></blockquote>
+
+<p>С <code>main.so</code> уже можно собрать бинарь, который запустит REPL, и проверить что функция <code>plus</code> доступна:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>clang<span class="w"> </span>-o<span class="w"> </span>main<span class="w"> </span>main.c<span class="w"> </span>./main.so<span class="w"> </span><span class="sb">`</span>pkg-config<span class="w"> </span>--cflags<span class="w"> </span>--libs<span class="w"> </span>guile-2.2<span class="sb">`</span>
+<span class="gp">$ </span>./main
+<span class="go">GNU Guile 2.2.3</span>
+<span class="go">Copyright (C) 1995-2017 Free Software Foundation, Inc.</span>
+
+<span class="go">Guile comes with ABSOLUTELY NO WARRANTY; for details type `,show w&#39;.</span>
+<span class="go">This program is free software, and you are welcome to redistribute it</span>
+<span class="go">under certain conditions; type `,show c&#39; for details.</span>
+
+<span class="go">Enter `,help&#39; for help.</span>
+<span class="go">scheme@(guile-user)&gt; (plus 1 2)</span>
+<span class="gp">$</span><span class="nv">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span>
+<span class="go">scheme@(guile-user)&gt; (exit)</span>
+</pre></div>
+
+</div>
+
+<p>Взглянем на размер бинаря и линковку:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>du<span class="w"> </span>-hs<span class="w"> </span>main.so
+<span class="go">1.4M    main.so</span>
+<span class="gp">$ </span>du<span class="w"> </span>-hs<span class="w"> </span>main
+<span class="go">24K     main</span>
+<span class="gp">$ </span>ldd<span class="w"> </span>main
+<span class="go">	linux-vdso.so.1 (0x00007ffe31985000)</span>
+<span class="go">	./main.so (0x00007fab3ff52000)</span>
+<span class="go">	libguile-2.2.so.1 =&gt; /nix/store/...-guile-2.2.3/lib/libguile-2.2.so.1 (0x00007f5ead4d7000)</span>
+<span class="go">	libgc.so.1 =&gt; /nix/store/...-boehm-gc-8.0.2/lib/libgc.so.1 (0x00007f5ead467000)</span>
+<span class="go">	libpthread.so.0 =&gt; /nix/store/...-glibc-2.27/lib/libpthread.so.0 (0x00007f5ead446000)</span>
+<span class="go">	libc.so.6 =&gt; /nix/store/...-glibc-2.27/lib/libc.so.6 (0x00007f5ead290000)</span>
+<span class="go">	libffi.so.6 =&gt; /nix/store/...-libffi-3.2.1/lib/../lib64/libffi.so.6 (0x00007f5ead281000)</span>
+<span class="go">	libunistring.so.2 =&gt; /nix/store/...-libunistring-0.9.10/lib/libunistring.so.2 (0x00007f5ead0fc000)</span>
+<span class="go">	libgcc_s.so.1 =&gt; /nix/store/...-glibc-2.27/lib/libgcc_s.so.1 (0x00007f5eacee6000)</span>
+<span class="go">	libgmp.so.10 =&gt; /nix/store/...-gmp-6.1.2/lib/libgmp.so.10 (0x00007f5eace50000)</span>
+<span class="go">	libltdl.so.7 =&gt; /nix/store/...-libtool-2.4.6-lib/lib/libltdl.so.7 (0x00007f5eace43000)</span>
+<span class="go">	libcrypt.so.1 =&gt; /nix/store/...-glibc-2.27/lib/libcrypt.so.1 (0x00007f5eace09000)</span>
+<span class="go">	libm.so.6 =&gt; /nix/store/...-glibc-2.27/lib/libm.so.6 (0x00007f5eacc71000)</span>
+<span class="go">	/nix/store/...-glibc-2.27/lib/ld-linux-x86-64.so.2 =&gt; /nix/store/...-glibc-2.27/lib64/ld-linux-x86-64.so.2 (0x00007f5ead60e000)</span>
+<span class="go">	libdl.so.2 =&gt; /nix/store/...-glibc-2.27/lib/libdl.so.2 (0x00007f5eacc6c000)</span>
+</pre></div>
+
+</div>
+
+<p>Видно что сишный бинарь с динамической линковкой занимает не много места, в то же время собранный Go <code>main.so</code> занимает больше места чем бинарь до этого(кстати я пока точно не знаю почему).</p>
+
+<p>В этом примере складываются 2 числа, что может быть полезно для демонстрации концепций, но очень далеко от реальных задач. Как насчёт взаимодействия с user-defined структурами данных?</p>
+
+<h4 id="d327b294"><a href="#d327b294" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>structs-simple</h4>
+
+<p>Например если в Go коде будет такой тип:</p>
+
+<div class="brush: go">
+ <div class="source">
+  <pre><span></span><span class="c1">//export Post</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">Post</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">Title</span><span class="w"> </span><span class="kt">string</span>
+<span class="w">	</span><span class="nx">Body</span><span class="w">  </span><span class="nx">Body</span>
+<span class="p">}</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">Body</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">Type</span><span class="w"> </span><span class="kt">string</span>
+<span class="w">	</span><span class="nx">Text</span><span class="w"> </span><span class="kt">string</span>
+<span class="p">}</span>
+</pre></div>
+
+</div>
+
+<p>То ничего работать не будет:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="go">./main.go:5:11: Go type not supported in export: struct {</span>
+<span class="go">	Title	string</span>
+<span class="go">	Body	Body</span>
+<span class="go">}</span>
+</pre></div>
+
+</div>
+
+<p>Потому что cgo умеет работать только с &ldquo;простыми&rdquo; типами и <a href="https://github.com/golang/go/issues/18412">не похоже</a> что это <a href="https://groups.google.com/forum/#!topic/Golang-nuts/MDoqVSXszdU">изменится</a> в ближайшее время.</p>
+
+<p>Раз Go не может сделать это за человека, придётся написать такую же структуру самостоятельно, начнём с чего-нибудь попроще, например структуры для двух операндов в <code>main.go</code>:</p>
+
+<blockquote>
+ <p>Следующие далее исходники находятся в <a href="/repositories/go-adhesive/guile">репозитории</a>. Воспроизвести результат можно выполнив <code>make run</code> в директории <code>structs-simple</code>.</p></blockquote>
+
+<blockquote>
+ <p><code>C.struct_operands</code> представляет структуру <code>operands</code>, которая определена в C.</p></blockquote>
+
+<div class="brush: go">
+ <div class="source">
+  <pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="c1">// #cgo CFLAGS: -g -Wall</span>
+<span class="cm">/*</span>
+<span class="cm">struct operands {</span>
+<span class="cm">  int a;</span>
+<span class="cm">  int b;</span>
+<span class="cm">};</span>
+<span class="cm">*/</span>
+<span class="kn">import</span><span class="w"> </span><span class="s">"C"</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">	</span><span class="s">"fmt"</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">operands</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">a</span><span class="w"> </span><span class="kt">int32</span>
+<span class="w">	</span><span class="nx">b</span><span class="w"> </span><span class="kt">int32</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">CPlus</span><span class="p">(</span><span class="nx">ops</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nx">struct_operands</span><span class="p">)</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="kt">int</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nb">int</span><span class="p">(</span><span class="nx">Plus</span><span class="p">(</span>
+<span class="w">		</span><span class="nx">operands</span><span class="p">{</span>
+<span class="w">			</span><span class="nx">a</span><span class="p">:</span><span class="w"> </span><span class="nb">int32</span><span class="p">(</span><span class="nx">ops</span><span class="p">.</span><span class="nx">a</span><span class="p">),</span>
+<span class="w">			</span><span class="nx">b</span><span class="p">:</span><span class="w"> </span><span class="nb">int32</span><span class="p">(</span><span class="nx">ops</span><span class="p">.</span><span class="nx">b</span><span class="p">),</span>
+<span class="w">		</span><span class="p">},</span>
+<span class="w">	</span><span class="p">))</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">Plus</span><span class="p">(</span><span class="nx">ops</span><span class="w"> </span><span class="nx">operands</span><span class="p">)</span><span class="w"> </span><span class="kt">int32</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">ops</span><span class="p">.</span><span class="nx">a</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">ops</span><span class="p">.</span><span class="nx">b</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">cops</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nx">struct_operands</span><span class="p">{</span><span class="nx">a</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nx">b</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">}</span>
+<span class="w">	</span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">"%+v\n"</span><span class="p">,</span><span class="w"> </span><span class="nx">CPlus</span><span class="p">(</span><span class="nx">cops</span><span class="p">))</span>
+<span class="p">}</span>
+</pre></div>
+
+</div>
+
+<p>Функция <code>Plus</code> выполняет сложение чисел. Её входные данные и результат обёрнуты <code>CPlus</code>, которая приводит типы из C-совместимых в Go-совместимые.</p>
+
+<blockquote>
+ <p>Для простоты считаем что <code>int</code> всегда 32-bit, но лучше так не писать, ведь это <a href="https://stackoverflow.com/questions/1231147/is-int-in-c-always-32-bit">не всегда правда</a>).</p></blockquote>
+
+<p>Соберём и запустим пример:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>main<span class="w"> </span>main.go
+<span class="gp">$ </span>./main
+<span class="go">3</span>
+</pre></div>
+
+</div>
+
+<h4 id="dc00b15d"><a href="#dc00b15d" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>structs-complex</h4>
+
+<p>Настало время усложнить структуры данных, введя строки. Посмотрим на изначальный пример &ldquo;сложных&rdquo; структур данных <code>body</code> &amp; <code>page</code> в <code>main.go</code>:</p>
+
+<blockquote>
+ <p>Следующие далее исходники находятся в <a href="/repositories/go-adhesive/guile">репозитории</a>. Воспроизвести результат можно выполнив <code>make run</code> в директории <code>structs-complex</code>.</p></blockquote>
+
+<div class="brush: go">
+ <div class="source">
+  <pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="c1">// #cgo CFLAGS: -g -Wall</span>
+<span class="cm">/*</span>
+<span class="cm">struct body {</span>
+<span class="cm">  char *format;</span>
+<span class="cm">  char *text;</span>
+<span class="cm">};</span>
+<span class="cm">struct page {</span>
+<span class="cm">  char *title;</span>
+<span class="cm">  struct body body;</span>
+<span class="cm">};</span>
+<span class="cm">*/</span>
+<span class="kn">import</span><span class="w"> </span><span class="s">"C"</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">	</span><span class="s">"fmt"</span>
+<span class="w">	</span><span class="s">"github.com/davecgh/go-spew/spew"</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">body</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">format</span><span class="w"> </span><span class="kt">string</span>
+<span class="w">	</span><span class="nx">text</span><span class="w">   </span><span class="kt">string</span>
+<span class="p">}</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">page</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">title</span><span class="w"> </span><span class="kt">string</span>
+<span class="w">	</span><span class="nx">body</span><span class="w">  </span><span class="nx">body</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">CCreate</span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nx">struct_page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">Create</span><span class="p">(</span><span class="nx">page</span><span class="p">{</span>
+<span class="w">		</span><span class="nx">title</span><span class="p">:</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nx">GoString</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">title</span><span class="p">),</span>
+<span class="w">		</span><span class="nx">body</span><span class="p">:</span><span class="w"> </span><span class="nx">body</span><span class="p">{</span>
+<span class="w">			</span><span class="nx">format</span><span class="p">:</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nx">GoString</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">format</span><span class="p">),</span>
+<span class="w">			</span><span class="nx">text</span><span class="p">:</span><span class="w">   </span><span class="nx">C</span><span class="p">.</span><span class="nx">GoString</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">text</span><span class="p">),</span>
+<span class="w">		</span><span class="p">},</span>
+<span class="w">	</span><span class="p">})</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">Create</span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><span class="nx">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">"requested to create a page:"</span><span class="p">)</span>
+<span class="w">	</span><span class="nx">spew</span><span class="p">.</span><span class="nx">Dump</span><span class="p">(</span><span class="nx">p</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">p</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nx">struct_page</span><span class="p">{</span>
+<span class="w">		</span><span class="nx">title</span><span class="p">:</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nx">CString</span><span class="p">(</span><span class="s">"hello"</span><span class="p">),</span>
+<span class="w">		</span><span class="nx">body</span><span class="p">:</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nx">struct_body</span><span class="p">{</span>
+<span class="w">			</span><span class="nx">format</span><span class="p">:</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nx">CString</span><span class="p">(</span><span class="s">"markdown"</span><span class="p">),</span>
+<span class="w">			</span><span class="nx">text</span><span class="p">:</span><span class="w">   </span><span class="nx">C</span><span class="p">.</span><span class="nx">CString</span><span class="p">(</span><span class="s">"hello world"</span><span class="p">),</span>
+<span class="w">		</span><span class="p">},</span>
+<span class="w">	</span><span class="p">}</span>
+<span class="w">	</span><span class="nx">CCreate</span><span class="p">(</span><span class="nx">p</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+
+</div>
+
+<p>Принцип остался темже, но хочется обратить внимание на то что cgo нагенерил специальный тип для своих строк, так что достаточно удобно конвертировать сишный <code>char*</code> в гошный <code>string</code>.</p>
+
+<p>Всё управление памятью в примерах <a href="#f78597df">structs-simple</a> и <a href="#919850d5">structs-complex</a> автоматическое, в &ldquo;сишную часть программы&rdquo; лишь передаются ссылки на память, но не наоборот. И сишному коду не нужно держать ссылки на эту память, в противном случае код был бы сложнее(привет <a href="https://linux.die.net/man/3/malloc">malloc</a>, как минимум).</p>
+
+<p>После запуска можем наблюдать следующее:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>main<span class="w"> </span>main.go
+<span class="gp">$ </span>./main
+<span class="go">requested to create a page:</span>
+<span class="gp gp-VirtualEnv">(main.page)</span> <span class="go">{</span>
+<span class="go"> title: (string) (len=5) "hello",</span>
+<span class="go"> body: (main.body) {</span>
+<span class="go">  format: (string) (len=8) "markdown",</span>
+<span class="go">  text: (string) (len=11) "hello world"</span>
+<span class="go"> }</span>
+<span class="go">}</span>
+</pre></div>
+
+</div>
+
+<h4 id="3ceacca4"><a href="#3ceacca4" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>structs-guile</h4>
+
+<p>Теперь &ldquo;прикрутим&rdquo; Guile к этому коду и будем создавать структуры <code>page</code> &amp; <code>body</code> из интерпретируемого языка, экспортируя нужные функции из <code>main.go</code>:</p>
+
+<blockquote>
+ <p>Следующие далее исходники находятся в <a href="/repositories/go-adhesive/guile">репозитории</a>. Воспроизвести результат можно выполнив <code>make run</code> в директории <code>structs-guile</code>.</p></blockquote>
+
+<div class="brush: go">
+ <div class="source">
+  <pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="c1">// #cgo CFLAGS: -g -Wall</span>
+<span class="c1">// #include "structs.h"</span>
+<span class="kn">import</span><span class="w"> </span><span class="s">"C"</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">	</span><span class="s">"fmt"</span>
+<span class="w">	</span><span class="s">"time"</span>
+<span class="w">	</span><span class="s">"github.com/davecgh/go-spew/spew"</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">body</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">format</span><span class="w"> </span><span class="kt">string</span>
+<span class="w">	</span><span class="nx">text</span><span class="w">   </span><span class="kt">string</span>
+<span class="p">}</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">page</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">title</span><span class="w"> </span><span class="kt">string</span>
+<span class="w">	</span><span class="nx">body</span><span class="w">  </span><span class="nx">body</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">printer</span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><span class="o">*</span><span class="nx">C</span><span class="p">.</span><span class="nx">struct_page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="k">for</span><span class="w"> </span><span class="p">{</span>
+<span class="w">		</span><span class="nx">time</span><span class="p">.</span><span class="nx">Sleep</span><span class="p">(</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">5</span><span class="p">)</span>
+<span class="w">		</span><span class="nx">spew</span><span class="p">.</span><span class="nx">Dump</span><span class="p">(</span><span class="nx">p</span><span class="p">)</span>
+<span class="w">	</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//export CCreate</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">CCreate</span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><span class="o">*</span><span class="nx">C</span><span class="p">.</span><span class="nx">struct_page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">Create</span><span class="p">(</span><span class="nx">page</span><span class="p">{</span>
+<span class="w">		</span><span class="nx">title</span><span class="p">:</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nx">GoString</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">title</span><span class="p">),</span>
+<span class="w">		</span><span class="nx">body</span><span class="p">:</span><span class="w"> </span><span class="nx">body</span><span class="p">{</span>
+<span class="w">			</span><span class="nx">format</span><span class="p">:</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nx">GoString</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">format</span><span class="p">),</span>
+<span class="w">			</span><span class="nx">text</span><span class="p">:</span><span class="w">   </span><span class="nx">C</span><span class="p">.</span><span class="nx">GoString</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">text</span><span class="p">),</span>
+<span class="w">		</span><span class="p">},</span>
+<span class="w">	</span><span class="p">})</span>
+<span class="w">	</span><span class="k">go</span><span class="w"> </span><span class="nx">printer</span><span class="p">(</span><span class="nx">p</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">Create</span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><span class="nx">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">"requested to create a page:"</span><span class="p">)</span>
+<span class="w">	</span><span class="nx">spew</span><span class="p">.</span><span class="nx">Dump</span><span class="p">(</span><span class="nx">p</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span>
+</pre></div>
+
+</div>
+
+<p>Почти тоже самое что и в <a href="#919850d5">structs-complex</a>, за исключением двух вещей:</p>
+
+<ul>
+ <li>структуры переехали в <code>structs.h</code></li>
+ <li>наружу экспортируется <code>CCreate</code></li></ul>
+
+<p>Вот содержимое <code>structs.h</code></p>
+
+<blockquote>
+ <p><code>#ifndef STRUCTS_H</code> и другие директивы препроцессора тут это т.н. <a href="https://www.cprogramming.com/tutorial/cpreprocessor.html">include guards</a>.</p></blockquote>
+
+<div class="brush: go">
+ <div class="source">
+  <pre><span></span><span class="err">#</span><span class="nx">ifndef</span><span class="w"> </span><span class="nx">STRUCTS_H</span>
+<span class="err">#</span><span class="nx">define</span><span class="w"> </span><span class="nx">STRUCTS_H</span>
+
+<span class="kd">struct</span><span class="w"> </span><span class="nx">body</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">char</span><span class="w"> </span><span class="o">*</span><span class="nx">format</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">char</span><span class="w"> </span><span class="o">*</span><span class="nx">text</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="kd">struct</span><span class="w"> </span><span class="nx">page</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">char</span><span class="w"> </span><span class="o">*</span><span class="nx">title</span><span class="p">;</span>
+<span class="w">  </span><span class="kd">struct</span><span class="w"> </span><span class="nx">body</span><span class="w"> </span><span class="o">*</span><span class="nx">body</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="err">#</span><span class="nx">endif</span>
+</pre></div>
+
+</div>
+
+<p>На данном этапе уже можно собрать <code>main.so</code> и проверить что <code>CCreate</code> действительно экспортируется:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>main.so<span class="w"> </span>-buildmode<span class="o">=</span>c-shared<span class="w"> </span>main.go
+<span class="gp">$ </span>go<span class="w"> </span>tool<span class="w"> </span>nm<span class="w"> </span>main.so<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-F<span class="w"> </span><span class="s1">&#39; T &#39;</span>
+<span class="go">  130f60 T CCreate</span>
+<span class="go">  131200 T _cgo_get_context_function</span>
+<span class="go">   d44f0 T _cgo_panic</span>
+<span class="go">...</span>
+</pre></div>
+
+</div>
+
+<p>А теперь будем программировать ни C, &ldquo;вклеивая&rdquo; нужные структуры данных в Guile, этот код будет расположен в <code>main.c</code>:</p>
+
+<div class="brush: go">
+ <div class="source">
+  <pre><span></span><span class="err">#</span><span class="nx">include</span><span class="w"> </span><span class="p">&lt;</span><span class="nx">libguile</span><span class="p">.</span><span class="nx">h</span><span class="p">&gt;</span>
+<span class="err">#</span><span class="nx">include</span><span class="w"> </span><span class="s">"structs.h"</span>
+<span class="err">#</span><span class="nx">include</span><span class="w"> </span><span class="s">"main.h"</span>
+<span class="nx">static</span><span class="w"> </span><span class="nx">SCM</span><span class="w"> </span><span class="nx">body_type</span><span class="p">;</span>
+<span class="nx">static</span><span class="w"> </span><span class="nx">SCM</span><span class="w"> </span><span class="nx">page_type</span><span class="p">;</span>
+
+<span class="nx">void</span><span class="w"> </span><span class="nx">init_body_type</span><span class="p">(</span><span class="nx">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="nx">body_type</span><span class="w"> </span><span class="p">=</span>
+<span class="w">    </span><span class="nx">scm_make_foreign_object_type</span><span class="p">(</span><span class="nx">scm_from_utf8_symbol</span><span class="p">(</span><span class="s">"body"</span><span class="p">),</span>
+<span class="w">                                 </span><span class="nx">scm_list_1</span><span class="p">(</span><span class="nx">scm_from_utf8_symbol</span><span class="p">(</span><span class="s">"data"</span><span class="p">)),</span>
+<span class="w">                                 </span><span class="nx">NULL</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="nx">void</span><span class="w"> </span><span class="nx">init_page_type</span><span class="p">(</span><span class="nx">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="nx">page_type</span><span class="w"> </span><span class="p">=</span>
+<span class="w">    </span><span class="nx">scm_make_foreign_object_type</span><span class="p">(</span><span class="nx">scm_from_utf8_symbol</span><span class="p">(</span><span class="s">"page"</span><span class="p">),</span>
+<span class="w">                                 </span><span class="nx">scm_list_1</span><span class="p">(</span><span class="nx">scm_from_utf8_symbol</span><span class="p">(</span><span class="s">"data"</span><span class="p">)),</span>
+<span class="w">                                 </span><span class="nx">NULL</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="nx">void</span><span class="w"> </span><span class="nx">init_foreign_types</span><span class="p">(</span><span class="nx">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="nx">init_body_type</span><span class="p">();</span>
+<span class="w">  </span><span class="nx">init_page_type</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="nx">SCM</span><span class="w"> </span><span class="nx">make_body</span><span class="p">(</span><span class="nx">SCM</span><span class="w"> </span><span class="nx">format</span><span class="p">,</span><span class="w"> </span><span class="nx">SCM</span><span class="w"> </span><span class="nx">text</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="kd">struct</span><span class="w"> </span><span class="nx">body</span><span class="w"> </span><span class="o">*</span><span class="nx">body</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">body</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">(</span><span class="kd">struct</span><span class="w"> </span><span class="nx">body</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="nx">scm_gc_malloc</span><span class="p">(</span><span class="nx">sizeof</span><span class="p">(</span><span class="kd">struct</span><span class="w"> </span><span class="nx">body</span><span class="p">),</span><span class="w"> </span><span class="s">"body"</span><span class="p">);</span>
+<span class="w">  </span><span class="nx">body</span><span class="o">-</span><span class="p">&gt;</span><span class="nx">format</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">scm_to_stringn</span><span class="p">(</span><span class="nx">format</span><span class="p">,</span><span class="w"> </span><span class="nx">NULL</span><span class="p">,</span><span class="w"> </span><span class="s">"UTF-8"</span><span class="p">,</span><span class="w"> </span><span class="nx">SCM_FAILED_CONVERSION_ERROR</span><span class="p">);</span>
+<span class="w">  </span><span class="nx">body</span><span class="o">-</span><span class="p">&gt;</span><span class="nx">text</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">scm_to_stringn</span><span class="p">(</span><span class="nx">text</span><span class="p">,</span><span class="w"> </span><span class="nx">NULL</span><span class="p">,</span><span class="w"> </span><span class="s">"UTF-8"</span><span class="p">,</span><span class="w"> </span><span class="nx">SCM_FAILED_CONVERSION_ERROR</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">scm_make_foreign_object_1</span><span class="p">(</span><span class="nx">body_type</span><span class="p">,</span><span class="w"> </span><span class="nx">body</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="nx">SCM</span><span class="w"> </span><span class="nx">make_page</span><span class="p">(</span><span class="nx">SCM</span><span class="w"> </span><span class="nx">title</span><span class="p">,</span><span class="w"> </span><span class="nx">SCM</span><span class="w"> </span><span class="nx">body</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="kd">struct</span><span class="w"> </span><span class="nx">page</span><span class="w"> </span><span class="o">*</span><span class="nx">page</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">page</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">(</span><span class="kd">struct</span><span class="w"> </span><span class="nx">page</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="nx">scm_gc_malloc</span><span class="p">(</span><span class="nx">sizeof</span><span class="p">(</span><span class="kd">struct</span><span class="w"> </span><span class="nx">page</span><span class="p">),</span><span class="w"> </span><span class="s">"page"</span><span class="p">);</span>
+<span class="w">  </span><span class="nx">page</span><span class="o">-</span><span class="p">&gt;</span><span class="nx">title</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">scm_to_stringn</span><span class="p">(</span><span class="nx">title</span><span class="p">,</span><span class="w"> </span><span class="nx">NULL</span><span class="p">,</span><span class="w"> </span><span class="s">"UTF-8"</span><span class="p">,</span><span class="w"> </span><span class="nx">SCM_FAILED_CONVERSION_ERROR</span><span class="p">);</span>
+<span class="w">  </span><span class="nx">page</span><span class="o">-</span><span class="p">&gt;</span><span class="nx">body</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">(</span><span class="kd">struct</span><span class="w"> </span><span class="nx">body</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="nx">scm_foreign_object_ref</span><span class="p">(</span><span class="nx">body</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">scm_make_foreign_object_1</span><span class="p">(</span><span class="nx">page_type</span><span class="p">,</span><span class="w"> </span><span class="nx">page</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="nx">SCM</span><span class="w"> </span><span class="nx">create_page</span><span class="p">(</span><span class="nx">SCM</span><span class="w"> </span><span class="nx">page</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="nx">CCreate</span><span class="p">((</span><span class="kd">struct</span><span class="w"> </span><span class="nx">page</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="nx">scm_foreign_object_ref</span><span class="p">(</span><span class="nx">page</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">));</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">SCM_UNSPECIFIED</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nx">static</span><span class="w"> </span><span class="nx">void</span><span class="w"> </span><span class="nx">ready</span><span class="p">(</span><span class="nx">void</span><span class="w"> </span><span class="o">*</span><span class="nx">data</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nx">argc</span><span class="p">,</span><span class="w"> </span><span class="nx">char</span><span class="w"> </span><span class="o">**</span><span class="nx">argv</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="nx">init_foreign_types</span><span class="p">();</span>
+
+<span class="w">  </span><span class="nx">scm_c_define_gsubr</span><span class="p">(</span><span class="s">"make-body"</span><span class="p">,</span><span class="w">   </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nx">make_body</span><span class="p">);</span>
+<span class="w">  </span><span class="nx">scm_c_define_gsubr</span><span class="p">(</span><span class="s">"make-page"</span><span class="p">,</span><span class="w">   </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nx">make_page</span><span class="p">);</span>
+<span class="w">  </span><span class="nx">scm_c_define_gsubr</span><span class="p">(</span><span class="s">"create-page"</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nx">create_page</span><span class="p">);</span>
+
+<span class="w">  </span><span class="nx">scm_shell</span><span class="p">(</span><span class="nx">argc</span><span class="p">,</span><span class="w"> </span><span class="nx">argv</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nx">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="nx">argc</span><span class="p">,</span><span class="w"> </span><span class="nx">char</span><span class="w"> </span><span class="o">**</span><span class="nx">argv</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="nx">scm_boot_guile</span><span class="p">(</span><span class="nx">argc</span><span class="p">,</span><span class="w"> </span><span class="nx">argv</span><span class="p">,</span><span class="w"> </span><span class="nx">ready</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+</div>
+
+<p>Разберём код:</p>
+
+<p>Как и в предыдущем примере под названием <a href="#d18aac96">shared</a>, в <code>scm_boot_guile</code> передаётся <code>ready</code>, где в Guile экспортируются конструкторы(<code>make_*</code>) структур данных, написанные на C. Эти конструкторы будут доступны в REPL как функции.</p>
+
+<p>Также помимо конструкторов можно заметить что в REPL экспортируется функция <code>create_page</code>, которая оборачивает <code>CCreate</code> из Go, передавая ей сишную структуру <code>page</code>, таким образом вызов Go из Guile ничем не отличает от вызова Go и C.</p>
+
+<p>Каждый из конструкторов соответствующего типа(<code>make_*</code>) аллоцирует память внутри Guile под сишную структуру <code>page</code> или <code>body</code>, полученная память передаётся в управление Guile и управляется его сборщиком мусора.</p>
+
+<blockquote>
+ <p>Здесь есть проблема, которая себя обязательно проявит если Go код будет использовать переданный ему указатель уже после вызова <code>CCreate</code>. Указатель на <code>struct page</code>, отдаваемый в <code>CCreate</code>, может быть собран на одном из проходов Guile GC(скорее всего на втором, потому что <a href="https://en.wikipedia.org/wiki/Boehm_garbage_collector">mark-sweep</a>). Позже я покажу как можно сломать этот код :)</p></blockquote>
+
+<p>Теперь можно собрать программу, подключив к ней <code>main.so</code>, и запустить:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>clang<span class="w"> </span>-Wall<span class="w"> </span>-o<span class="w"> </span>main<span class="w"> </span>main.c<span class="w"> </span>./main.so<span class="w"> </span><span class="sb">`</span>pkg-config<span class="w"> </span>--cflags<span class="w"> </span>--libs<span class="w"> </span>guile-2.2<span class="sb">`</span>
+<span class="gp">$ </span>./main
+<span class="go">GNU Guile 2.2.3</span>
+<span class="go">Copyright (C) 1995-2017 Free Software Foundation, Inc.</span>
+
+<span class="go">Guile comes with ABSOLUTELY NO WARRANTY; for details type `,show w&#39;.</span>
+<span class="go">This program is free software, and you are welcome to redistribute it</span>
+<span class="go">under certain conditions; type `,show c&#39; for details.</span>
+
+<span class="go">Enter `,help&#39; for help.</span>
+<span class="go">scheme@(guile-user)&gt;</span>
+</pre></div>
+
+</div>
+
+<p>Напишем в REPL тестовый код, который напечатает структуру данных, которая была получена на стороне Go:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="go">scheme@(guile-user)&gt; (create-page (make-page "title" (make-body "markdown" "hello world!")))</span>
+<span class="go">requested to create a page:</span>
+<span class="gp gp-VirtualEnv">(main.page)</span> <span class="go">{</span>
+<span class="go"> title: (string) (len=5) "title",</span>
+<span class="go"> body: (main.body) {</span>
+<span class="go">  format: (string) (len=8) "markdown",</span>
+<span class="go">  text: (string) (len=12) "hello world!"</span>
+<span class="go"> }</span>
+<span class="go">}</span>
+</pre></div>
+
+</div>
+
+<p>Настало время сломать эту программу, продемонстрировав проблемы в управлении памятью. Вот patch для <code>structs-guile/main.go</code>:</p>
+
+<div class="brush: patch">
+ <div class="source">
+  <pre><span></span>diff --git a/main.go b/main.go
+--- a/main.go
++++ b/main.go
+@@ -6,6 +6,7 @@ import "C"
+
+ import (
+ 	"fmt"
++	"time"
+ 	"github.com/davecgh/go-spew/spew"
+ )
+
+@@ -19,6 +20,13 @@ type page struct {
+ 	body  body
+ }
+
++func printer(p *C.struct_page) {
++	for {
++		time.Sleep(time.Second * 5)
++		spew.Dump(p)
++	}
++}
++
+ //export CCreate
+ func CCreate(p *C.struct_page) {
+ 	Create(page{
+@@ -28,6 +36,7 @@ func CCreate(p *C.struct_page) {
+ 			text:   C.GoString(p.body.text),
+ 		},
+ 	})
++	go printer(p)
+ }
+
+ func Create(p page) {
+</pre></div>
+
+</div>
+
+<p>Запустив отдельную горутину в конце <code>CCreate</code>, которая каждые 5 секунд пытается сдампить содержимое переданного в <code>CCreate</code> указателя, будет легко увидеть как программа упадёт после того как указатель будет собран сборщиком мусора.</p>
+
+<p>Теперь достаточно пересобрать <code>main.so</code>, вновь запустить REPL и выполнить там следующий код:</p>
+
+<blockquote>
+ <p>Может потребоваться больше чем 2 вызовов <code>(gc)</code>, инициирующих сборку мусора.</p></blockquote>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="go">scheme@(guile-user)&gt; (create-page (make-page "title" (make-body "markdown" "hello world!")))</span>
+<span class="go">requested to create a page:</span>
+<span class="gp gp-VirtualEnv">(main.page)</span> <span class="go">{</span>
+<span class="go"> title: (string) (len=5) "title",</span>
+<span class="go"> body: (main.body) {</span>
+<span class="go">  format: (string) (len=8) "markdown",</span>
+<span class="go">  text: (string) (len=12) "hello world!"</span>
+<span class="go"> }</span>
+<span class="go">}</span>
+<span class="go">scheme@(guile-user)&gt; (gc)</span>
+<span class="go">scheme@(guile-user)&gt; (gc)</span>
+<span class="go">scheme@(guile-user)&gt; (*main._Ctype_struct_page)(0x7f274dc5b670)({</span>
+<span class="go"> title: (*main._Ctype_char)(0x7f276c5999e0)(5),</span>
+<span class="go"> body: (*main._Ctype_struct_body)(0x304)({</span>
+<span class="go">  format: panic: runtime error: invalid memory address or nil pointer dereference</span>
+<span class="go">[signal SIGSEGV: segmentation violation code=0x1 addr=0x304 pc=0x7f27774860ab]</span>
+
+<span class="go">goroutine 5 [running]:</span>
+<span class="go">reflect.Value.IsNil(...)</span>
+<span class="go">        /nix/store/...-go-1.12/share/go/src/reflect/value.go:1041</span>
+<span class="go">github.com/davecgh/go-spew/spew.(*dumpState).dumpPtr(0xc0000c3f48, 0x7f27774d5e40, 0x304, 0x1b6)</span>
+<span class="go">        /home/user/go/pkg/mod/github.com/davecgh/go-spew@v1.1.1/spew/dump.go:101 +0x81b</span>
+<span class="go">...</span>
+</pre></div>
+
+</div>
+
+<p>Есть два способа это исправить:</p>
+
+<ul>
+ <li>копировать данные, с которыми предполагается взаимодейстовать в фоне</li>
+ <li>управлять памятью вручную, т.е. используя системный аллокатор и в Guile, и в Go</li></ul>
+
+<p>Но эти примеры я уже не буду показывать, потому что есть способ лучше.</p>
+
+<h4 id="74926688"><a href="#74926688" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>ffi-simple</h4>
+
+<p>В Guile <a href="https://www.gnu.org/software/guile/manual/html_node/Dynamic-FFI.html">хорошо развит FFI</a>. Его можно использовать для вызова экспортируемых из <code>main.go</code> функций. Начнём вновь с простых примеров с функцией <code>Plus</code>:</p>
+
+<blockquote>
+ <p>Следующие далее исходники находятся в <a href="/repositories/go-adhesive/guile">репозитории</a>. Воспроизвести результат можно выполнив <code>make run</code> в директории <code>ffi-simple</code>.</p></blockquote>
+
+<div class="brush: go">
+ <div class="source">
+  <pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="s">"C"</span>
+
+<span class="c1">//export Plus</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">Plus</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span><span class="w"> </span><span class="nx">b</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="kt">int</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nb">int</span><span class="p">(</span><span class="nb">int32</span><span class="p">(</span><span class="nx">a</span><span class="p">)</span><span class="o">+</span><span class="nb">int32</span><span class="p">(</span><span class="nx">b</span><span class="p">))</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span>
+</pre></div>
+
+</div>
+
+<p>Только теперь загружать <code>main.so</code> будем сразу из Guile, определив модуль в <code>main.scm</code>:</p>
+
+<blockquote>
+ <p>При запуске примера необходимо добавить директорию <code>ffi-simple</code> в переменную окружение <code>LD_LIBRARY_PATH</code>. Кстати, <code>make run</code> делает это автоматически.</p></blockquote>
+
+<div class="brush: lisp">
+ <div class="source">
+  <pre><span></span><span class="p">(</span><span class="nv">define-module</span><span class="w"> </span><span class="p">(</span><span class="nv">main</span><span class="p">)</span>
+<span class="w">  </span><span class="ss">#:use-module</span><span class="w"> </span><span class="p">(</span><span class="nv">system</span><span class="w"> </span><span class="nv">foreign</span><span class="p">)</span>
+<span class="w">  </span><span class="ss">#:export</span><span class="w"> </span><span class="p">(</span><span class="nv">plus</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nv">define</span><span class="w"> </span><span class="nv">lib</span><span class="w"> </span><span class="p">(</span><span class="nv">dynamic-link</span><span class="w"> </span><span class="s">"main"</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nv">define</span><span class="w"> </span><span class="nv">plus</span>
+<span class="w">  </span><span class="p">(</span><span class="nv">pointer-&gt;procedure</span>
+<span class="w">   </span><span class="nv">int</span>
+<span class="w">   </span><span class="p">(</span><span class="nv">dynamic-func</span><span class="w"> </span><span class="s">"Plus"</span><span class="w"> </span><span class="nv">lib</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="nv">int</span><span class="w"> </span><span class="nv">int</span><span class="p">)))</span>
+</pre></div>
+
+</div>
+
+<p>За динамическую загрузку библиотеки отвечает функция <code>dynamic-link</code>. После её вызова я определяю функцию <code>plus</code>, которая вызывает <code>Plus</code> из <code>main.so</code>.</p>
+
+<p>Ну и раз уж начал использовать систему модулей Guile, удобнее будет и пример кода для использования функции <code>plus</code> записать в отдельный файл, <code>run.scm</code>:</p>
+
+<div class="brush: lisp">
+ <div class="source">
+  <pre><span></span><span class="p">(</span><span class="nv">add-to-load-path</span><span class="w"> </span><span class="p">(</span><span class="nv">getcwd</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">use-modules</span><span class="w"> </span><span class="p">(</span><span class="nv">main</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nv">display</span><span class="w"> </span><span class="p">(</span><span class="nv">plus</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">newline</span><span class="p">)</span>
+</pre></div>
+
+</div>
+
+<p>Запускаем:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>main.so<span class="w"> </span>-buildmode<span class="o">=</span>c-shared<span class="w"> </span>main.go
+<span class="gp">$ </span>guile<span class="w"> </span>-s<span class="w"> </span>./run.scm
+<span class="go">3</span>
+</pre></div>
+
+</div>
+
+<h4 id="aa4e9799"><a href="#aa4e9799" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>ffi-complex</h4>
+
+<p>Вернемся к примерам с структурами <code>body</code> &amp; <code>page</code>. Начнем с описания <code>main.go</code>:</p>
+
+<blockquote>
+ <p>Следующие далее исходники находятся в <a href="/repositories/go-adhesive/guile">репозитории</a>. Воспроизвести результат можно выполнив <code>make run</code> в директории <code>ffi-complex</code>.</p></blockquote>
+
+<div class="brush: go">
+ <div class="source">
+  <pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="c1">// #cgo CFLAGS: -g -Wall</span>
+<span class="cm">/*</span>
+<span class="cm">struct body {</span>
+<span class="cm">  char *format;</span>
+<span class="cm">  char *text;</span>
+<span class="cm">};</span>
+
+<span class="cm">struct page {</span>
+<span class="cm">  char *title;</span>
+<span class="cm">  struct body *body;</span>
+<span class="cm">};</span>
+<span class="cm">*/</span>
+<span class="kn">import</span><span class="w"> </span><span class="s">"C"</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">	</span><span class="s">"fmt"</span>
+<span class="w">	</span><span class="s">"github.com/davecgh/go-spew/spew"</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">body</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">format</span><span class="w"> </span><span class="kt">string</span>
+<span class="w">	</span><span class="nx">text</span><span class="w">   </span><span class="kt">string</span>
+<span class="p">}</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">page</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">title</span><span class="w"> </span><span class="kt">string</span>
+<span class="w">	</span><span class="nx">body</span><span class="w">  </span><span class="nx">body</span>
+<span class="p">}</span>
+
+<span class="c1">//export CCreate</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">CCreate</span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><span class="o">*</span><span class="nx">C</span><span class="p">.</span><span class="nx">struct_page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">Create</span><span class="p">(</span><span class="nx">page</span><span class="p">{</span>
+<span class="w">		</span><span class="nx">title</span><span class="p">:</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nx">GoString</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">title</span><span class="p">),</span>
+<span class="w">		</span><span class="nx">body</span><span class="p">:</span><span class="w"> </span><span class="nx">body</span><span class="p">{</span>
+<span class="w">			</span><span class="nx">format</span><span class="p">:</span><span class="w"> </span><span class="nx">C</span><span class="p">.</span><span class="nx">GoString</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">format</span><span class="p">),</span>
+<span class="w">			</span><span class="nx">text</span><span class="p">:</span><span class="w">   </span><span class="nx">C</span><span class="p">.</span><span class="nx">GoString</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">text</span><span class="p">),</span>
+<span class="w">		</span><span class="p">},</span>
+<span class="w">	</span><span class="p">})</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">Create</span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><span class="nx">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">"requested to create a page:"</span><span class="p">)</span>
+<span class="w">	</span><span class="nx">spew</span><span class="p">.</span><span class="nx">Dump</span><span class="p">(</span><span class="nx">p</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span>
+</pre></div>
+
+</div>
+
+<p>Этот код такой же как в <a href="#4e29b8f2">structs-guile</a>, разница только в том что здесь сишные структуры определены прямо в <code>main.go</code>.</p>
+
+<p>Далее опишем для <code>CCreate</code> Guile FFI в <code>main.scm</code>:</p>
+
+<div class="brush: lisp">
+ <div class="source">
+  <pre><span></span><span class="p">(</span><span class="nv">define-module</span><span class="w"> </span><span class="p">(</span><span class="nv">main</span><span class="p">)</span>
+<span class="w">  </span><span class="ss">#:use-module</span><span class="w"> </span><span class="p">(</span><span class="nv">system</span><span class="w"> </span><span class="nv">foreign</span><span class="p">)</span>
+<span class="w">  </span><span class="ss">#:export</span><span class="w"> </span><span class="p">(</span><span class="nv">make-body</span><span class="w"> </span><span class="nv">make-page</span><span class="w"> </span><span class="nv">create-page</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nv">define</span><span class="w"> </span><span class="nv">lib</span><span class="w"> </span><span class="p">(</span><span class="nv">dynamic-link</span><span class="w"> </span><span class="s">"main"</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nv">define</span><span class="w"> </span><span class="p">(</span><span class="nv">make-body</span><span class="w"> </span><span class="nb">format</span><span class="w"> </span><span class="nv">text</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="nv">make-c-struct</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="nb">*</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="p">(</span><span class="nv">string-&gt;pointer</span><span class="w"> </span><span class="nb">format</span><span class="p">)</span>
+<span class="w">			      </span><span class="p">(</span><span class="nv">string-&gt;pointer</span><span class="w"> </span><span class="nv">text</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nv">define</span><span class="w"> </span><span class="p">(</span><span class="nv">make-page</span><span class="w"> </span><span class="nv">title</span><span class="w"> </span><span class="nv">body</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="nv">make-c-struct</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="nb">*</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="p">(</span><span class="nv">string-&gt;pointer</span><span class="w"> </span><span class="nv">title</span><span class="p">)</span><span class="w"> </span><span class="nv">body</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nv">define</span><span class="w"> </span><span class="nv">create-page</span>
+<span class="w">  </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">((</span><span class="nv">create</span><span class="w"> </span><span class="p">(</span><span class="nv">pointer-&gt;procedure</span>
+<span class="w">		 </span><span class="nv">void</span>
+<span class="w">		 </span><span class="p">(</span><span class="nv">dynamic-func</span><span class="w"> </span><span class="s">"CCreate"</span><span class="w"> </span><span class="nv">lib</span><span class="p">)</span>
+<span class="w">		 </span><span class="o">&#39;</span><span class="p">(</span><span class="nb">*</span><span class="p">))))</span>
+<span class="w">    </span><span class="p">(</span><span class="k">lambda</span><span class="w"> </span><span class="p">(</span><span class="nv">page</span><span class="p">)</span>
+<span class="w">      </span><span class="p">(</span><span class="nv">create</span><span class="w"> </span><span class="nv">page</span><span class="p">))))</span>
+</pre></div>
+
+</div>
+
+<p>Добавилось две новых функции-конструктора:</p>
+
+<ul>
+ <li><code>make-body</code></li>
+ <li><code>make-page</code></li></ul>
+
+<p>Каждая из них создаёт сишную структуру, стараясь максимально соответствовать указанным в <code>main.go</code> сишным типам. Автоматически это не энфорсится, проверок нет, только рантайм :)</p>
+
+<p>По аналогии с предыдущим примером запишем код для запуска примера в <code>run.scm</code>:</p>
+
+<div class="brush: lisp">
+ <div class="source">
+  <pre><span></span><span class="p">(</span><span class="nv">add-to-load-path</span><span class="w"> </span><span class="p">(</span><span class="nv">getcwd</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">use-modules</span><span class="w"> </span><span class="p">(</span><span class="nv">main</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nv">create-page</span><span class="w"> </span><span class="p">(</span><span class="nv">make-page</span><span class="w"> </span><span class="s">"title"</span><span class="w"> </span><span class="p">(</span><span class="nv">make-body</span><span class="w"> </span><span class="s">"markdown"</span><span class="w"> </span><span class="s">"hello world!"</span><span class="p">)))</span>
+</pre></div>
+
+</div>
+
+<p>Произведём сборку и запуск:</p>
+
+<div class="brush: console">
+ <div class="source">
+  <pre><span></span><span class="gp">$ </span>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>main.so<span class="w"> </span>-buildmode<span class="o">=</span>c-shared<span class="w"> </span>main.go
+<span class="gp">$ </span>guile<span class="w"> </span>-s<span class="w"> </span>./run.scm
+<span class="go">requested to create a page:</span>
+<span class="gp gp-VirtualEnv">(main.page)</span> <span class="go">{</span>
+<span class="go"> title: (string) (len=5) "title",</span>
+<span class="go"> body: (main.body) {</span>
+<span class="go">  format: (string) (len=8) "markdown",</span>
+<span class="go">  text: (string) (len=12) "hello world!"</span>
+<span class="go"> }</span>
+<span class="go">}</span>
+</pre></div>
+
+</div>
+
+<h3 id="70f571a2"><a href="#70f571a2" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>summary</h3>
+
+<p>Подведём итоги. Запускать Go код из скриптового языка через C конечно можно, но не удобно. Количество C кода для &ldquo;склеивания&rdquo; структур данных в <a href="#4e29b8f2">structs-guile</a> впечатляет и подтверждает что это совсем не тот инструмент, которым стоит решать поставленную задачу. Также не стоит забывать что FFI в Go это вообще <a href="https://about.sourcegraph.com/go/gophercon-2018-adventures-in-cgo-performance/">не быстро</a>.</p>
+
+<h3 id="569730fe"><a href="#569730fe" class="anchor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+   <path d="M6.702 10.554l-3.82-3.82 2.227-2.227 3.82 3.82.993-.994L5.11 2.52.894 6.735s4.812 4.812 4.814 4.812z"></path>
+   <path d="M10.294 4.454l-.993.993 3.82 3.82-2.228 2.227-3.82-3.82-.993.994 4.813 4.812 4.213-4.214z"></path></svg></a>references</h3>
+
+<ul>
+ <li><a href="https://golang.org/cmd/cgo/">cgo</a></li>
+ <li><a href="https://dev.to/vladimirvivien/calling-go-functions-from-other-languages">calling Go functions from other languages</a></li>
+ <li><a href="https://www.gnu.org/software/guile/manual/html_node/Defining-New-Foreign-Object-Types.html#Defining-New-Foreign-Object-Types">defining new foreign object types</a> in Guile</li>
+ <li><a href="https://gist.github.com/zchee/b9c99695463d8902cd33">cgo types cheatsheet</a></li>
+ <li><a href="https://medium.com/@liamkelly17/working-with-packed-c-structs-in-cgo-224a0a3b708b">working with packed C structs in cgo</a></li>
+ <li><a href="https://www.gnu.org/software/guile/manual/html_node/Dynamic-FFI.html">dynamic FFI</a> in Guile</li>
+ <li><a href="https://www.gnu.org/software/guile/manual/html_node/Foreign-Structs.html#Foreign-Structs">foreign structs</a> in Guile</li>
+ <li><a href="https://about.sourcegraph.com/go/gophercon-2018-adventures-in-cgo-performance/">adventures in cgo performance</a></li></ul>
+  <footer>
+    <p>
+<time datetime="2019-03-31" pubdate="true">2019-03-31</time> <span class="tags"><a href="/tags/ru.html">ru</a>, <a href="/tags/go.html">go</a>, <a href="/tags/cgo.html">cgo</a>, <a href="/tags/lisp.html">lisp</a>, <a href="/tags/scheme.html">scheme</a>, <a href="/tags/series-go-adhesive.html">series:go-adhesive</a></span></p>
+  </footer>
+</article>
+          </article>
+        </div>
+      </div>
+    </div>
+    <!-- remember: when you stare into the abyss the abyss stares back at you -->
+  </body>
+</html>

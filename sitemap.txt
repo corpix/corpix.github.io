@@ -1,0 +1,11 @@
+https://corpix.dev/2022/02/using-certbot-with-knot-dns-knsupdate.html
+https://corpix.dev/2022/08/terraforming-nixos-hosts.html
+https://corpix.dev/2022/02/collaborative-editing-with-emacs.html
+https://corpix.dev/2019/03/choosing-the-best-adhesive-for-go-code-1.html
+https://corpix.dev/2019/02/run-postgresql-by-hands.html
+https://corpix.dev/2019/02/reproducible-docker-containers.html
+https://corpix.dev/2019/02/emacs-go-mode-lsp-repl.html
+https://corpix.dev/2024/02/flashing-tuya-wt5-dimmer-with-openbeken.html
+https://corpix.dev/study.html
+https://corpix.dev/projects.html
+https://corpix.dev/about.html
