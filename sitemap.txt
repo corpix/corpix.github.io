@@ -6,7 +6,7 @@ https://corpix.dev/2019/02/emacs-go-mode-lsp-repl.html
 https://corpix.dev/2022/02/collaborative-editing-with-emacs.html
 https://corpix.dev/2022/02/using-certbot-with-knot-dns-knsupdate.html
 https://corpix.dev/2019/02/reproducible-docker-containers.html
-https://corpix.dev/study.html
 https://corpix.dev/projects.html
 https://corpix.dev/index.html
+https://corpix.dev/index/index.html
 https://corpix.dev/about.html
