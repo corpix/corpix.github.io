@@ -2,8 +2,8 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
  <title type="text">corpix/blog: corpix/blog</title>
  <link rel="self" href="https://corpix.dev/feeds/all.atom.xml" />
- <link href="https://corpix.dev/index.html" />
- <id>urn:https-corpix-dev:-index-html</id>
+ <link href="https://corpix.dev/blog.html" />
+ <id>urn:https-corpix-dev:-blog-html</id>
  <updated>2024-02-06T09:00:00Z</updated>
  <entry>
   <title type="text">Flashing Tuya WT5 dimmer with openbeken</title>
