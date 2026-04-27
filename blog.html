@@ -22,7 +22,7 @@
 
     <meta name="description"           content="corpix/blog">
     <meta name="author"                content="Dmitry Moskowski">
-    <meta name="keywords"              content="tls, nixos, lisp, cgo, language server, certbot, vgo2nix, en, knot, ru, terraform, docker, golang, bingo, tuya, go, collaborative, scheme, emacs, knsupdate, letsencrypt, crdt, postgresql, nix, all, iot, dns, series:go-adhesive">
+    <meta name="keywords"              content="nixos, lisp, cgo, language server, vgo2nix, en, ru, terraform, docker, golang, bingo, tuya, go, collaborative, scheme, emacs, crdt, postgresql, nix, all, iot, series:go-adhesive">
     <meta name="viewport"              content="width=device-width, initial-scale=1">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
 
@@ -72,6 +72,22 @@
 
           <article>
   <header>
+    <h2><a href="/2026/04/certbot-knot.html">certbot-knot</a></h2>
+  </header>
+
+<pre><code>Title: Using Certbot with Knot DNS (knsupdate)
+Date: 2022-02-17T21:00:00
+Tags: en, certbot, tls, letsencrypt, knot, dns, knsupdate</code></pre>
+
+<p>This is a note about the integration of the Certbot with Let&rsquo;s encrypt DNS&ndash;01 authentication mechanism. Will not use any cloud services (fuck cloud), just self-hosted DNS instances, like good old times. I&rsquo;ll show how to configure Knot DNS to accept dynamic DNS updates from <code>knsupdate</code> and how to create a rudimentary hook for Certbot which will use <code>knsupdate</code> to set <code>TXT</code> records with <code>_acme-challenge</code>.</p>
+  <footer>
+    <p class="tags">
+<time datetime="2026-04-27" pubdate="true">2026-04-27</time> <span class="tags"></span></p>
+    <div class="continue"><a href="/2026/04/certbot-knot.html">continue &hellip;</a></div>
+  </footer>
+</article>
+<article>
+  <header>
     <h2><a href="/2024/02/flashing-tuya-wt5-dimmer-with-openbeken.html">Flashing Tuya WT5 dimmer with openbeken</a></h2>
   </header>
 
@@ -112,18 +128,6 @@
     <p class="tags">
 <time datetime="2022-02-20" pubdate="true">2022-02-20</time> <span class="tags"><a href="/tags/en.html">en</a>, <a href="/tags/emacs.html">emacs</a>, <a href="/tags/crdt.html">crdt</a>, <a href="/tags/collaborative.html">collaborative</a></span></p>
     <div class="continue"><a href="/2022/02/collaborative-editing-with-emacs.html">continue &hellip;</a></div>
-  </footer>
-</article>
-<article>
-  <header>
-    <h2><a href="/2022/02/using-certbot-with-knot-dns-knsupdate.html">Using Certbot with Knot DNS (knsupdate)</a></h2>
-  </header>
-
-<p>This is a note about the integration of the Certbot with Let&rsquo;s encrypt DNS&ndash;01 authentication mechanism. Will not use any cloud services (fuck cloud), just self-hosted DNS instances, like good old times. I&rsquo;ll show how to configure Knot DNS to accept dynamic DNS updates from <code>knsupdate</code> and how to create a rudimentary hook for Certbot which will use <code>knsupdate</code> to set <code>TXT</code> records with <code>_acme-challenge</code>.</p>
-  <footer>
-    <p class="tags">
-<time datetime="2022-02-17" pubdate="true">2022-02-17</time> <span class="tags"><a href="/tags/en.html">en</a>, <a href="/tags/certbot.html">certbot</a>, <a href="/tags/tls.html">tls</a>, <a href="/tags/letsencrypt.html">letsencrypt</a>, <a href="/tags/knot.html">knot</a>, <a href="/tags/dns.html">dns</a>, <a href="/tags/knsupdate.html">knsupdate</a></span></p>
-    <div class="continue"><a href="/2022/02/using-certbot-with-knot-dns-knsupdate.html">continue &hellip;</a></div>
   </footer>
 </article>
 <article>

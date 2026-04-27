@@ -18,11 +18,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Using Certbot with Knot DNS (knsupdate)</title>
+    <title>certbot-knot</title>
 
-    <meta name="description"           content="This is a note about the integration of the Certbot with Let's encrypt DNS-01 authentication mechanism. Will not use any cloud services (fuck cloud), just self-hosted DNS instances, like good old times. I'll show how to configure Knot DNS to accept dynami...">
+    <meta name="description"           content="`Title: Using Certbot with Knot DNS (knsupdate) Date: 2022-02-17T21:00:00 Tags: en, certbot, tls, letsencrypt, knot, dns, knsupdate` This is a note about the integration of the Certbot with Let's encrypt DNS-01 authentication mechanism. Will not use any c...">
     <meta name="author"                content="Dmitry Moskowski">
-    <meta name="keywords"              content="en, certbot, tls, letsencrypt, knot, dns, knsupdate">
+    <meta name="keywords"              content="">
     <meta name="viewport"              content="width=device-width, initial-scale=1">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
 
@@ -33,10 +33,10 @@
     <link rel="alternate" type="application/atom+xml" href="/feeds/all.atom.xml" title="Atom Feed">
     <link rel="alternate" type="application/rss+xml"  href="/feeds/all.rss.xml"  title="RSS Feed">
 
-    <link rel="canonical" href="https://corpix.dev/2022/02/using-certbot-with-knot-dns-knsupdate.html">
+    <link rel="canonical" href="https://corpix.dev/2026/04/certbot-knot.html">
 
-    <link rel="next" href="/2019/03/choosing-the-best-adhesive-for-go-code-1.html">
-    <link rel="prev" href="/2022/02/collaborative-editing-with-emacs.html">
+    <link rel="next" href="/2024/02/flashing-tuya-wt5-dimmer-with-openbeken.html">
+
 
     <script>
       // corpix: "никакого джаваскрипта на страницах нет и не будет"
@@ -72,8 +72,12 @@
 
           <article>
   <header>
-    <h1>Using Certbot with Knot DNS (knsupdate)</h1>
+    <h1>certbot-knot</h1>
   </header>
+
+<pre><code>Title: Using Certbot with Knot DNS (knsupdate)
+Date: 2022-02-17T21:00:00
+Tags: en, certbot, tls, letsencrypt, knot, dns, knsupdate</code></pre>
 
 <p>This is a note about the integration of the Certbot with Let&rsquo;s encrypt DNS&ndash;01 authentication mechanism. Will not use any cloud services (fuck cloud), just self-hosted DNS instances, like good old times. I&rsquo;ll show how to configure Knot DNS to accept dynamic DNS updates from <code>knsupdate</code> and how to create a rudimentary hook for Certbot which will use <code>knsupdate</code> to set <code>TXT</code> records with <code>_acme-challenge</code>.</p>
 <!-- more-->
@@ -135,8 +139,29 @@
 <p>We define ACL which references previously generated key, then we reference ACL in template which will be used to control updates for <code>_acme-challenge.example.com</code> zone.</p>
 
 <blockquote>
- <p><strong>Why separate zone for <code>_acme-challenge</code>?</strong> 
-  <br /> Because my configuration does not include <code>master</code> and <code>slave</code> roles so we have no notifications between servers, I have reasons to do this to mitigate possible zone serial collisions which may break whole zone (my zones are static read-only files provisioned with configuration managements system)</p></blockquote>
+ <p><strong>Why separate zone for</strong> <code>_acme-challenge</code><strong>?</strong> 
+  <br />
+  <br />Because my configuration does not include <code>master</code> and <code>slave</code> roles
+  <br />so we have no notifications between servers, I have reasons to do this
+  <br />to mitigate possible zone serial collisions which may break whole zone
+  <br />(my zones are static read-only files provisioned with configuration managements system)</p></blockquote>
+
+<details>
+ <summary>If we would have notifications between servers, here is better, more constrained way which Knot support</summary>
+ <pre><code>key:
+ - id:                  letsencrypt
+   algorithm:           hmac-sha512
+   secret:              Me2/vFaNQp7dNXeNt3NuMgRWujxO5g1HwyV8nmn1YerdulKhMoFe8UjBvEfFVTYJmBywSoX4VIDzuaCdlfTbXA=
+acl:
+ - id:                  acl_update
+   address:             ::1
+   key:                 letsencrypt
+   action:              [ query, update ]
+   protocol:            [ udp, tcp ]
+   update-owner:        name
+   update-owner-name:   _acme-challenge
+   update-owner-match:  pattern
+   update-type:         TXT</code></pre></details>
 
 <p>Now let&rsquo;s describe <code>/data/_acme-challenge.example.com.zone</code> file:</p>
 
@@ -168,7 +193,7 @@ _acme-challenge.example.com. IN NS ns2.example.com.
 
 <blockquote>
  <p>Pay attention to <code>KNOT_KEY</code> it will have value: 
-  <br /> <code>hmac-sha512:dyndns:Me2/vFaNQp7dNXeNt3NuMgRWujxO5g1HwyV8nmn1YerdulKhMoFe8UjBvEfFVTYJmBywSoX4VIDzuaCdlfTbXA==</code></p></blockquote>
+  <br /><code>hmac-sha512:dyndns:Me2/vFaNQp7dNXeNt3NuMgRWujxO5g1HwyV8nmn1YerdulKhMoFe8UjBvEfFVTYJmBywSoX4VIDzuaCdlfTbXA==</code></p></blockquote>
 
 <div class="brush: bash">
  <div class="source">
@@ -417,7 +442,7 @@ NEXT STEPS:
 </div>
   <footer>
     <p>
-<time datetime="2022-02-17" pubdate="true">2022-02-17</time> <span class="tags"><a href="/tags/en.html">en</a>, <a href="/tags/certbot.html">certbot</a>, <a href="/tags/tls.html">tls</a>, <a href="/tags/letsencrypt.html">letsencrypt</a>, <a href="/tags/knot.html">knot</a>, <a href="/tags/dns.html">dns</a>, <a href="/tags/knsupdate.html">knsupdate</a></span></p>
+<time datetime="2026-04-27" pubdate="true">2026-04-27</time> <span class="tags"></span></p>
   </footer>
 </article>
         </div>
