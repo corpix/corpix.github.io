@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+ <title type="text">corpix/blog: Posts tagged 'letsencrypt'</title>
+ <link rel="self" href="https://corpix.dev/feeds/letsencrypt.atom.xml" />
+ <link href="https://corpix.dev/tags/letsencrypt.html" />
+ <id>urn:https-corpix-dev:-tags-letsencrypt-html</id>
+ <updated>2022-02-17T21:00:00Z</updated>
+ <entry>
+  <title type="text">Using Certbot with Knot DNS (knsupdate)</title>
+  <link rel="alternate" href="https://corpix.dev/2022/02/using-certbot-with-knot-dns-knsupdate.html?utm_source=letsencrypt&amp;utm_medium=Atom" />
+  <id>urn:https-corpix-dev:-2022-02-using-certbot-with-knot-dns-knsupdate-html</id>
+  <published>2022-02-17T21:00:00Z</published>
+  <updated>2022-02-17T21:00:00Z</updated>
+  <author>
+   <name>Dmitry Moskowski</name></author>
+  <content type="html">
+&lt;p&gt;This is a note about the integration of the Certbot with Let&amp;rsquo;s encrypt DNS&amp;ndash;01 authentication mechanism. Will not use any cloud services (fuck cloud), just self-hosted DNS instances, like good old times. I&amp;rsquo;ll show how to configure Knot DNS to accept dynamic DNS updates from &lt;code&gt;knsupdate&lt;/code&gt; and how to create a rudimentary hook for Certbot which will use &lt;code&gt;knsupdate&lt;/code&gt; to set &lt;code&gt;TXT&lt;/code&gt; records with &lt;code&gt;_acme-challenge&lt;/code&gt;.&lt;/p&gt;&lt;a href="https://corpix.dev/2022/02/using-certbot-with-knot-dns-knsupdate.html?utm_source=letsencrypt&amp;amp;utm_medium=Atom"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</content></entry></feed>

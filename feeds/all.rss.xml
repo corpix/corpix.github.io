@@ -4,21 +4,9 @@
   <title>corpix/blog: corpix/blog</title>
   <description>corpix/blog: corpix/blog</description>
   <link>https://corpix.dev/blog.html</link>
-  <lastBuildDate>Mon, 27 Apr 2026 07:36:05 UT</lastBuildDate>
-  <pubDate>Mon, 27 Apr 2026 07:36:05 UT</pubDate>
+  <lastBuildDate>Tue, 06 Feb 2024 09:00:00 UT</lastBuildDate>
+  <pubDate>Tue, 06 Feb 2024 09:00:00 UT</pubDate>
   <ttl>1800</ttl>
-  <item>
-   <title>certbot-knot</title>
-   <link>https://corpix.dev/2026/04/certbot-knot.html?utm_source=all&amp;utm_medium=RSS</link>
-   <guid isPermaLink="false">urn:https-corpix-dev:-2026-04-certbot-knot-html</guid>
-   <pubDate>Mon, 27 Apr 2026 07:36:05 UT</pubDate>
-   <author>Dmitry Moskowski</author>
-   <description>
-&lt;pre&gt;&lt;code&gt;Title: Using Certbot with Knot DNS (knsupdate)
-Date: 2022-02-17T21:00:00
-Tags: en, certbot, tls, letsencrypt, knot, dns, knsupdate&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;This is a note about the integration of the Certbot with Let&amp;rsquo;s encrypt DNS&amp;ndash;01 authentication mechanism. Will not use any cloud services (fuck cloud), just self-hosted DNS instances, like good old times. I&amp;rsquo;ll show how to configure Knot DNS to accept dynamic DNS updates from &lt;code&gt;knsupdate&lt;/code&gt; and how to create a rudimentary hook for Certbot which will use &lt;code&gt;knsupdate&lt;/code&gt; to set &lt;code&gt;TXT&lt;/code&gt; records with &lt;code&gt;_acme-challenge&lt;/code&gt;.&lt;/p&gt;&lt;a href="https://corpix.dev/2026/04/certbot-knot.html?utm_source=all&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item>
   <item>
    <title>Flashing Tuya WT5 dimmer with openbeken</title>
    <link>https://corpix.dev/2024/02/flashing-tuya-wt5-dimmer-with-openbeken.html?utm_source=all&amp;utm_medium=RSS</link>
@@ -51,6 +39,14 @@ Tags: en, certbot, tls, letsencrypt, knot, dns, knsupdate&lt;/code&gt;&lt;/pre&g
    <author>Dmitry Moskowski</author>
    <description>
 &lt;p&gt;This note is about using Emacs for collaborative editing with help of package called &lt;a href="https://code.librehq.com/qhong/crdt.el"&gt;crdt.el&lt;/a&gt;.&lt;/p&gt;&lt;a href="https://corpix.dev/2022/02/collaborative-editing-with-emacs.html?utm_source=all&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item>
+  <item>
+   <title>Using Certbot with Knot DNS (knsupdate)</title>
+   <link>https://corpix.dev/2022/02/using-certbot-with-knot-dns-knsupdate.html?utm_source=all&amp;utm_medium=RSS</link>
+   <guid isPermaLink="false">urn:https-corpix-dev:-2022-02-using-certbot-with-knot-dns-knsupdate-html</guid>
+   <pubDate>Thu, 17 Feb 2022 21:00:00 UT</pubDate>
+   <author>Dmitry Moskowski</author>
+   <description>
+&lt;p&gt;This is a note about the integration of the Certbot with Let&amp;rsquo;s encrypt DNS&amp;ndash;01 authentication mechanism. Will not use any cloud services (fuck cloud), just self-hosted DNS instances, like good old times. I&amp;rsquo;ll show how to configure Knot DNS to accept dynamic DNS updates from &lt;code&gt;knsupdate&lt;/code&gt; and how to create a rudimentary hook for Certbot which will use &lt;code&gt;knsupdate&lt;/code&gt; to set &lt;code&gt;TXT&lt;/code&gt; records with &lt;code&gt;_acme-challenge&lt;/code&gt;.&lt;/p&gt;&lt;a href="https://corpix.dev/2022/02/using-certbot-with-knot-dns-knsupdate.html?utm_source=all&amp;amp;utm_medium=RSS"&gt;&lt;em&gt;More&amp;hellip;&lt;/em&gt;&lt;/a&gt;</description></item>
   <item>
    <title>choosing the best adhesive for Go code #1</title>
    <link>https://corpix.dev/2019/03/choosing-the-best-adhesive-for-go-code-1.html?utm_source=all&amp;utm_medium=RSS</link>
