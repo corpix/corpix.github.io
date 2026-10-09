@@ -34,6 +34,7 @@
     <link rel="alternate" type="application/rss+xml"  href="/feeds/all.rss.xml"  title="RSS Feed">
 
     <link rel="canonical" href="https://corpix.dev/2022/02/using-certbot-with-knot-dns-knsupdate.html">
+    <link rel="alternate" hreflang="en" href="https://corpix.dev/2022/02/using-certbot-with-knot-dns-knsupdate.html"><link rel="alternate" hreflang="x-default" href="https://corpix.dev/2022/02/using-certbot-with-knot-dns-knsupdate.html">
 
     <link rel="next" href="/2019/03/choosing-the-best-adhesive-for-go-code-1.html">
     <link rel="prev" href="/2022/02/collaborative-editing-with-emacs.html">
@@ -69,10 +70,11 @@
         </div>
         <div class="content">
           <!-- the one good licence for opensource is unlicense -->
-
           <article>
   <header>
     <h1>Using Certbot with Knot DNS (knsupdate)</h1>
+
+
   </header>
 
 <p>This is a note about the integration of the Certbot with Let&rsquo;s encrypt DNS&ndash;01 authentication mechanism. Will not use any cloud services (fuck cloud), just self-hosted DNS instances, like good old times. I&rsquo;ll show how to configure Knot DNS to accept dynamic DNS updates from <code>knsupdate</code> and how to create a rudimentary hook for Certbot which will use <code>knsupdate</code> to set <code>TXT</code> records with <code>_acme-challenge</code>.</p>
