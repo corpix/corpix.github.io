@@ -207,7 +207,7 @@
 
 <div class="brush: console">
  <div class="source">
-  <pre><span></span><span class="go"> λ  nix repl &#39;&lt;nixpkgs&gt;&#39;</span>
+  <pre><span></span><span class="go"> λ  nix repl '&lt;nixpkgs&gt;'</span>
 <span class="go">nix-repl&gt; pkgs.terraform-providers.&lt;TAB&gt;</span>
 <span class="go">...</span>
 </pre></div>
@@ -605,7 +605,7 @@
 
 <span class="go">Terraform will perform the following actions:</span>
 
-<span class="gp">  # </span>nixos_instance.vm<span class="w"> </span>will<span class="w"> </span>be<span class="w"> </span>updated<span class="w"> </span><span class="k">in</span>-place
+<span class="gp">  # </span>nixos_instance.vm<span class="w"> </span>will<span class="w"> </span>be<span class="w"> </span>updated<span class="w"> </span>in-place
 <span class="go">  ~ resource "nixos_instance" "vm" {</span>
 <span class="go">        id                 = "e64be02d-a4b6-7a0a-1cb2-23cc3cfab449"</span>
 <span class="go">      ~ secret_fingerprint = {</span>
@@ -945,7 +945,7 @@ resource <span class="s2">"nixos_instance"</span> <span class="s2">"vm"</span> <
 
 <span class="go">switch:       make the configuration the boot default and activate now</span>
 <span class="go">boot:         make the configuration the boot default</span>
-<span class="go">test:         activate the configuration, but don&#39;t make it the boot default</span>
+<span class="go">test:         activate the configuration, but don't make it the boot default</span>
 <span class="go">dry-activate: show what would be done if this configuration were activated</span>
 </pre></div>
 

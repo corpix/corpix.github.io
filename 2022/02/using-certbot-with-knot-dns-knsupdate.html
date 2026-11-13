@@ -201,7 +201,7 @@ _acme-challenge.example.com. IN NS ns2.example.com.
 <div class="brush: bash">
  <div class="source">
   <pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_SERVER</span><span class="o">=</span>ns1.example.com
-<span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_KEY</span><span class="o">=</span><span class="k">$(</span>cat<span class="w"> </span>/secrets/dyndns<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span><span class="s1">&#39;s/^#\s*//g&#39;</span><span class="k">)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_KEY</span><span class="o">=</span><span class="k">$(</span>cat<span class="w"> </span>/secrets/dyndns<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span><span class="s1">'s/^#\s*//g'</span><span class="k">)</span>
 
 <span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_ZONE</span><span class="o">=</span>_acme-challenge.example.com
 <span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_SUBJECT</span><span class="o">=</span>example.com
@@ -280,7 +280,7 @@ _acme-challenge.example.com. IN NS ns2.example.com.
 <div class="brush: bash">
  <div class="source">
   <pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_SERVER</span><span class="o">=</span>ns1.example.com
-<span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_KEY</span><span class="o">=</span><span class="k">$(</span>cat<span class="w"> </span>/secrets/dyndns<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span><span class="s1">&#39;s/^#\s*//g&#39;</span><span class="k">)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_KEY</span><span class="o">=</span><span class="k">$(</span>cat<span class="w"> </span>/secrets/dyndns<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span><span class="s1">'s/^#\s*//g'</span><span class="k">)</span>
 
 <span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_ZONE</span><span class="o">=</span>_acme-challenge.example.com
 <span class="nb">export</span><span class="w"> </span><span class="nv">KNOT_SUBJECT</span><span class="o">=</span>example.com
@@ -308,8 +308,8 @@ _acme-challenge.example.com. IN NS ns2.example.com.
 <span class="nb">set</span><span class="w"> </span>-o<span class="w"> </span>pipefail
 
 <span class="nv">nameservers</span><span class="o">=</span><span class="k">$(</span>host<span class="w"> </span>-t<span class="w"> </span>NS<span class="w"> </span><span class="si">${</span><span class="nv">KNOT_ZONE</span><span class="si">}</span>.<span class="w"> </span><span class="si">${</span><span class="nv">KNOT_SERVER</span><span class="si">}</span><span class="w">   </span><span class="se">\</span>
-<span class="w">                  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-F<span class="w"> </span><span class="s1">&#39; name server &#39;</span><span class="w">             </span><span class="se">\</span>
-<span class="w">                  </span><span class="p">|</span><span class="w"> </span>awk<span class="w">  </span>-F<span class="w"> </span><span class="s1">&#39; name server &#39;</span><span class="w"> </span><span class="s1">&#39;{print $2}&#39;</span><span class="k">)</span>
+<span class="w">                  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-F<span class="w"> </span><span class="s1">' name server '</span><span class="w">             </span><span class="se">\</span>
+<span class="w">                  </span><span class="p">|</span><span class="w"> </span>awk<span class="w">  </span>-F<span class="w"> </span><span class="s1">' name server '</span><span class="w"> </span><span class="s1">'{print $2}'</span><span class="k">)</span>
 
 cleanup<span class="o">()</span><span class="w"> </span><span class="o">{</span>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>!<span class="w"> </span>-z<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">CERTBOT_AUTH_OUTPUT</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">]</span>
@@ -425,7 +425,7 @@ NEXT STEPS:
 <span class="go">Certificate:</span>
 <span class="go">    Data:</span>
 <span class="go">...</span>
-<span class="go">        Issuer: C = US, O = (STAGING) Let&#39;s Encrypt, CN = (STAGING) Artificial Apricot R3</span>
+<span class="go">        Issuer: C = US, O = (STAGING) Let's Encrypt, CN = (STAGING) Artificial Apricot R3</span>
 <span class="go">        Validity</span>
 <span class="go">            Not Before: Feb 17 15:06:00 2022 GMT</span>
 <span class="go">            Not After : May 18 15:06:00 2022 GMT</span>

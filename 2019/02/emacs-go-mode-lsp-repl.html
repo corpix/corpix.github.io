@@ -163,12 +163,12 @@
 
 <div class="brush: lisp">
  <div class="source">
-  <pre><span></span><span class="p">(</span><span class="nb">require</span><span class="w"> </span><span class="ss">&#39;lsp-mode</span><span class="p">)</span>
+  <pre><span></span><span class="p">(</span><span class="nb">require</span><span class="w"> </span><span class="ss">'lsp-mode</span><span class="p">)</span>
 <span class="p">(</span><span class="nv">lsp-register-client</span>
 <span class="w"> </span><span class="p">(</span><span class="nv">make-lsp-client</span>
 <span class="w">  </span><span class="ss">:new-connection</span><span class="w"> </span><span class="p">(</span><span class="nv">lsp-stdio-connection</span><span class="w"> </span><span class="s">"some-language-server-binary"</span><span class="p">)</span>
-<span class="w">  </span><span class="ss">:major-modes</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="nv">some-language-emacs-mode</span><span class="p">)</span>
-<span class="w">  </span><span class="ss">:server-id</span><span class="w"> </span><span class="ss">&#39;some-language-server</span><span class="p">))</span>
+<span class="w">  </span><span class="ss">:major-modes</span><span class="w"> </span><span class="o">'</span><span class="p">(</span><span class="nv">some-language-emacs-mode</span><span class="p">)</span>
+<span class="w">  </span><span class="ss">:server-id</span><span class="w"> </span><span class="ss">'some-language-server</span><span class="p">))</span>
 </pre></div>
 
 </div>
@@ -184,7 +184,7 @@
 <span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">go-mode</span>
 <span class="w">    </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span>
 <span class="w">    </span><span class="ss">:config</span>
-<span class="w">    </span><span class="p">(</span><span class="nv">add-to-list</span><span class="w"> </span><span class="ss">&#39;auto-mode-alist</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="s">"\\.go\\&#39;"</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="nv">go-mode</span><span class="p">)))</span>
+<span class="w">    </span><span class="p">(</span><span class="nv">add-to-list</span><span class="w"> </span><span class="ss">'auto-mode-alist</span><span class="w"> </span><span class="o">'</span><span class="p">(</span><span class="s">"\\.go\\'"</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="nv">go-mode</span><span class="p">)))</span>
 <span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">go-tag</span><span class="w"> </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span><span class="p">)</span>
 <span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">go-add-tags</span><span class="w"> </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span><span class="p">)</span>
 <span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">go-playground</span><span class="w"> </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span><span class="p">)</span>
@@ -194,25 +194,25 @@
 <span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">gorepl-mode</span>
 <span class="w">    </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span>
 <span class="w">    </span><span class="ss">:config</span>
-<span class="w">    </span><span class="p">(</span><span class="nv">add-hook</span><span class="w"> </span><span class="ss">&#39;go-mode-hook</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">gorepl-mode</span><span class="p">)))</span>
+<span class="w">    </span><span class="p">(</span><span class="nv">add-hook</span><span class="w"> </span><span class="ss">'go-mode-hook</span><span class="w"> </span><span class="nf">#'</span><span class="nv">gorepl-mode</span><span class="p">)))</span>
 
 <span class="p">(</span><span class="nb">defun</span><span class="w"> </span><span class="nv">config/packages/lsp</span><span class="w"> </span><span class="p">()</span>
 <span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">lsp-mode</span><span class="w"> </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span><span class="p">)</span>
 <span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">lsp-ui</span>
 <span class="w">    </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span>
 <span class="w">    </span><span class="ss">:config</span>
-<span class="w">    </span><span class="p">(</span><span class="nv">add-hook</span><span class="w"> </span><span class="ss">&#39;lsp-mode-hook</span><span class="w"> </span><span class="ss">&#39;lsp-ui-mode</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="nv">add-hook</span><span class="w"> </span><span class="ss">'lsp-mode-hook</span><span class="w"> </span><span class="ss">'lsp-ui-mode</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="k">setq</span>
 <span class="w">     </span><span class="nv">lsp-ui-doc-header</span><span class="w"> </span><span class="no">t</span>
 <span class="w">     </span><span class="nv">lsp-ui-doc-include-signature</span><span class="w"> </span><span class="no">t</span>
 <span class="w">     </span><span class="nv">lsp-ui-doc-use-childframe</span><span class="w"> </span><span class="no">t</span>
-<span class="w">     </span><span class="nv">lsp-ui-doc-position</span><span class="w"> </span><span class="ss">&#39;bottom</span>
+<span class="w">     </span><span class="nv">lsp-ui-doc-position</span><span class="w"> </span><span class="ss">'bottom</span>
 <span class="w">     </span><span class="nv">lsp-ui-sideline-enable</span><span class="w"> </span><span class="no">nil</span>
 <span class="w">     </span><span class="nv">lsp-enable-eldoc</span><span class="w"> </span><span class="no">nil</span><span class="p">))</span>
 <span class="w">  </span><span class="p">(</span><span class="nb">use-package</span><span class="w"> </span><span class="nv">company-lsp</span>
 <span class="w">    </span><span class="ss">:ensure</span><span class="w"> </span><span class="no">t</span>
 <span class="w">    </span><span class="ss">:config</span>
-<span class="w">    </span><span class="p">(</span><span class="nv">add-to-list</span><span class="w"> </span><span class="ss">&#39;company-backends</span><span class="w"> </span><span class="ss">&#39;company-lsp</span><span class="p">)))</span>
+<span class="w">    </span><span class="p">(</span><span class="nv">add-to-list</span><span class="w"> </span><span class="ss">'company-backends</span><span class="w"> </span><span class="ss">'company-lsp</span><span class="p">)))</span>
 
 <span class="p">(</span><span class="nv">config/packages/lsp</span><span class="p">)</span>
 <span class="p">(</span><span class="nv">config/packages/go</span><span class="p">)</span>

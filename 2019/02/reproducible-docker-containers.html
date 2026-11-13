@@ -231,7 +231,7 @@
 <div class="brush: shell">
  <div class="source">
   <pre><span></span>wget<span class="w"> </span>-O<span class="w"> </span>go.tgz<span class="w"> </span><span class="s2">"https://golang.org/dl/go</span><span class="nv">$GOLANG_VERSION</span><span class="s2">.src.tar.gz"</span><span class="p">;</span><span class="w">                              </span><span class="se">\</span>
-<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;bc1ef02bb1668835db1390a2e478dcbccb5dd16911691af9d75184bbe5aa943e *go.tgz&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sha256sum<span class="w"> </span>-c<span class="w"> </span>-<span class="p">;</span><span class="w"> </span><span class="se">\</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s1">'bc1ef02bb1668835db1390a2e478dcbccb5dd16911691af9d75184bbe5aa943e *go.tgz'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sha256sum<span class="w"> </span>-c<span class="w"> </span>-<span class="p">;</span><span class="w"> </span><span class="se">\</span>
 ...
 </pre></div>
 
@@ -259,13 +259,13 @@
     <span class="ss">version</span> <span class="o">=</span> <span class="s2">"unstable-2019-02-03"</span><span class="p">;</span>
     <span class="ss">goPackagePath</span> <span class="o">=</span> <span class="s2">"github.com/corpix/corpix.github.io/test2"</span><span class="p">;</span>
     <span class="ss">src</span> <span class="o">=</span> <span class="l">./.</span><span class="p">;</span>
-    <span class="ss">buildPhase</span> <span class="o">=</span> <span class="s s-Multiline">&#39;&#39;</span>
+    <span class="ss">buildPhase</span> <span class="o">=</span> <span class="s s-Multiline">''</span>
 <span class="s s-Multiline">      go build -o app $src/main.go</span>
-<span class="s s-Multiline">    &#39;&#39;</span><span class="p">;</span>
-    <span class="ss">installPhase</span> <span class="o">=</span> <span class="s s-Multiline">&#39;&#39;</span>
+<span class="s s-Multiline">    ''</span><span class="p">;</span>
+    <span class="ss">installPhase</span> <span class="o">=</span> <span class="s s-Multiline">''</span>
 <span class="s s-Multiline">      mkdir -p $bin/bin</span>
 <span class="s s-Multiline">      mv app $bin/bin</span>
-<span class="s s-Multiline">    &#39;&#39;</span><span class="p">;</span>
+<span class="s s-Multiline">    ''</span><span class="p">;</span>
   <span class="p">};</span>
 <span class="k">in</span> pkgs<span class="o">.</span>dockerTools<span class="o">.</span>buildImage <span class="p">{</span>
   <span class="ss">name</span> <span class="o">=</span> <span class="s2">"corpix.github.io/test2"</span><span class="p">;</span>
@@ -273,10 +273,10 @@
 
   <span class="ss">contents</span> <span class="o">=</span> app<span class="p">;</span>
 
-  <span class="ss">runAsRoot</span> <span class="o">=</span> <span class="s s-Multiline">&#39;&#39;</span>
+  <span class="ss">runAsRoot</span> <span class="o">=</span> <span class="s s-Multiline">''</span>
 <span class="s s-Multiline">    #!</span><span class="si">${</span>stdenv<span class="o">.</span>shell<span class="si">}</span>
 <span class="s s-Multiline">    </span><span class="si">${</span>dockerTools<span class="o">.</span>shadowSetup<span class="si">}</span>
-<span class="s s-Multiline">  &#39;&#39;</span><span class="p">;</span>
+<span class="s s-Multiline">  ''</span><span class="p">;</span>
 
   <span class="ss">config</span> <span class="o">=</span> <span class="p">{</span>
     <span class="ss">Cmd</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">"/bin/app"</span> <span class="p">];</span>
@@ -410,9 +410,9 @@
 
 <div class="brush: console">
  <div class="source">
-  <pre><span></span><span class="gp">$ </span>nix-instantiate<span class="w"> </span>--eval<span class="w"> </span>--expr<span class="w"> </span><span class="s1">&#39;with import &lt;nixpkgs&gt; {}; stdenv.shell&#39;</span>
+  <pre><span></span><span class="gp">$ </span>nix-instantiate<span class="w"> </span>--eval<span class="w"> </span>--expr<span class="w"> </span><span class="s1">'with import &lt;nixpkgs&gt; {}; stdenv.shell'</span>
 <span class="go">"/nix/store/can00lfiynqkbsdkkmgp6qg8p8w92cxa-bash-4.4-p23/bin/bash"</span>
-<span class="gp">$ </span>nix-instantiate<span class="w"> </span>--eval<span class="w"> </span>--expr<span class="w"> </span><span class="s1">&#39;with import &lt;nixpkgs&gt; {}; dockerTools.shadowSetup&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span>.
+<span class="gp">$ </span>nix-instantiate<span class="w"> </span>--eval<span class="w"> </span>--expr<span class="w"> </span><span class="s1">'with import &lt;nixpkgs&gt; {}; dockerTools.shadowSetup'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span>.
 <span class="go">export PATH=/nix/store/1hx9psidid8b1ps72dhlj47745n4p7yi-shadow-4.6/bin:$PATH</span>
 <span class="go">mkdir -p /etc/pam.d</span>
 <span class="go">if [[ ! -f /etc/passwd ]]; then</span>
@@ -484,13 +484,13 @@ pkgs<span class="o">.</span>buildGoPackage <span class="k">rec</span> <span clas
   <span class="ss">version</span> <span class="o">=</span> <span class="s2">"unstable-2019-02-03"</span><span class="p">;</span>
   <span class="ss">goPackagePath</span> <span class="o">=</span> <span class="s2">"github.com/corpix/corpix.github.io/test2"</span><span class="p">;</span>
   <span class="ss">src</span> <span class="o">=</span> <span class="l">./.</span><span class="p">;</span>
-  <span class="ss">buildPhase</span> <span class="o">=</span> <span class="s s-Multiline">&#39;&#39;</span>
+  <span class="ss">buildPhase</span> <span class="o">=</span> <span class="s s-Multiline">''</span>
 <span class="s s-Multiline">    go build -o app $src/main.go</span>
-<span class="s s-Multiline">  &#39;&#39;</span><span class="p">;</span>
-  <span class="ss">installPhase</span> <span class="o">=</span> <span class="s s-Multiline">&#39;&#39;</span>
+<span class="s s-Multiline">  ''</span><span class="p">;</span>
+  <span class="ss">installPhase</span> <span class="o">=</span> <span class="s s-Multiline">''</span>
 <span class="s s-Multiline">    mkdir -p $bin/bin</span>
 <span class="s s-Multiline">    mv app $bin/bin</span>
-<span class="s s-Multiline">  &#39;&#39;</span><span class="p">;</span>
+<span class="s s-Multiline">  ''</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 
@@ -507,10 +507,10 @@ pkgs<span class="o">.</span>dockerTools<span class="o">.</span>buildImage <span 
 
   <span class="ss">contents</span> <span class="o">=</span> <span class="nb">import</span> <span class="l">./app</span><span class="p">;</span>
 
-  <span class="ss">runAsRoot</span> <span class="o">=</span> <span class="s s-Multiline">&#39;&#39;</span>
+  <span class="ss">runAsRoot</span> <span class="o">=</span> <span class="s s-Multiline">''</span>
 <span class="s s-Multiline">    #!</span><span class="si">${</span>stdenv<span class="o">.</span>shell<span class="si">}</span>
 <span class="s s-Multiline">    </span><span class="si">${</span>dockerTools<span class="o">.</span>shadowSetup<span class="si">}</span>
-<span class="s s-Multiline">  &#39;&#39;</span><span class="p">;</span>
+<span class="s s-Multiline">  ''</span><span class="p">;</span>
 
   <span class="ss">config</span> <span class="o">=</span> <span class="p">{</span>
     <span class="ss">Cmd</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">"/bin/app"</span> <span class="p">];</span>
